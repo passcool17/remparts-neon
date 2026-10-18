@@ -3,15 +3,15 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 export const LEVELS = [
-  { id: 'vq', name: 'Vieux-Québec néon', sub: 'Les remparts, minuit', key: 0, weather: 'snow',
+  { id: 'vq', name: 'Vieux-Québec néon', sub: 'Les remparts, minuit', key: 0, weather: 'snow', wet: 0.55,
     pal: { a: 0xff2bd6, b: 0x22e5ff, sky1: 0x090018, sky2: 0x4a0b63, fog: 0x1b0730, sun: 0xff3fa4 },
     arena: { type: 'circle', r: 23 }, hpMul: 1, cashMul: 1,
     waves: [ { n: 22, mix: { cone: 8, bur: 3 } }, { n: 32, mix: { cone: 6, bur: 4, cons: 2 } }, { n: 26, mix: { cone: 6, bur: 3, cons: 2 }, boss: 'grandcone' } ] },
-  { id: 'sr', name: 'Saint-Roch néon', sub: 'La rue des enseignes, pluie néon', key: 3, weather: 'rain',
+  { id: 'sr', name: 'Saint-Roch néon', sub: 'La rue des enseignes, pluie néon', key: 3, weather: 'rain', wet: 1.0,
     pal: { a: 0xff8a1f, b: 0xa64dff, sky1: 0x07020f, sky2: 0x3b1240, fog: 0x1d0a22, sun: 0xff9a3c },
     arena: { type: 'rect', w: 17, h: 58 }, hpMul: 1.3, cashMul: 1.15,
     waves: [ { n: 32, mix: { cone: 4, bur: 3, cons: 3, plow: 2 } }, { n: 38, mix: { bur: 3, cons: 3, plow: 3, drone: 4 } }, { n: 28, mix: { cone: 4, cons: 3, plow: 2, drone: 3 }, boss: 'mere' } ] },
-  { id: 'pt', name: 'Le Pont de glace', sub: 'Au-dessus du fleuve gelé', key: -2, weather: 'blizzard',
+  { id: 'pt', name: 'Le Pont de glace', sub: 'Au-dessus du fleuve gelé', key: -2, weather: 'blizzard', wet: 0.35,
     pal: { a: 0x2bf0ff, b: 0x4f6bff, sky1: 0x01030f, sky2: 0x0b2b55, fog: 0x081a33, sun: 0x7fe9ff },
     arena: { type: 'rect', w: 14, h: 72 }, hpMul: 1.7, cashMul: 1.3,
     waves: [ { n: 38, mix: { cone: 3, bur: 3, cons: 4, plow: 3, drone: 5 } }, { n: 44, mix: { cone: 3, bur: 4, cons: 4, plow: 4, drone: 5 } }, { n: 32, mix: { cone: 3, cons: 4, plow: 3, drone: 5 }, boss: 'tram' } ] },
@@ -48,17 +48,41 @@ function signTex(text, color, bg = '#0a0010') {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 
+function stripeTex(c) { const cv = document.createElement('canvas'); cv.width = 8; cv.height = 64; const x = cv.getContext('2d'); for (let i = 0; i < 8; i++) { x.fillStyle = i % 2 ? '#' + new THREE.Color(c).getHexString() : '#1a0820'; x.fillRect(0, i * 8, 8, 8); }
+  const t = new THREE.CanvasTexture(cv); t.magFilter = THREE.NearestFilter; t.colorSpace = THREE.SRGBColorSpace; return t; }
+function vSignTex(text, color) {
+  const c = document.createElement('canvas'); c.width = 64; c.height = 64 * text.length * 0.62 + 24 | 0; const x = c.getContext('2d');
+  x.fillStyle = '#08000f'; x.fillRect(0, 0, c.width, c.height); x.strokeStyle = color; x.lineWidth = 4; x.strokeRect(3, 3, c.width - 6, c.height - 6);
+  x.font = '44px "Jersey 10", sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.shadowColor = color; x.shadowBlur = 8; x.fillStyle = color;
+  [...text].forEach((ch, i) => x.fillText(ch, 32, 22 + i * 40)); x.shadowBlur = 0; x.globalAlpha = 0.55; x.fillStyle = '#fff'; [...text].forEach((ch, i) => x.fillText(ch, 32, 22 + i * 40));
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
 const groundVS = `varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position,1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`;
 const groundFS = `uniform vec3 cA; uniform vec3 cB; uniform vec3 fogC; uniform float t; uniform float pulse; uniform float scale; uniform vec3 cam; uniform float arenaR;
+uniform vec3 lp[16]; uniform vec3 lc[16]; uniform int ln; uniform float wet;
 varying vec3 vW;
+float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float vnoise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y); }
 void main(){
   vec2 p = vW.xz / scale; vec2 g = abs(fract(p - 0.5) - 0.5) / fwidth(p); float l = 1.0 - min(min(g.x, g.y), 1.0);
   vec2 p2 = vW.xz / (scale * 4.0); vec2 g2 = abs(fract(p2 - 0.5) - 0.5) / fwidth(p2); float l2 = 1.0 - min(min(g2.x, g2.y), 1.0);
   float d = length(vW.xz - cam.xz);
   float wave = 0.5 + 0.5 * sin(length(vW.xz) * 0.35 - t * 3.0);
-  vec3 lc = mix(cA, cB, wave);
-  vec3 col = vec3(0.012, 0.004, 0.03) + lc * (l * (0.35 + pulse * 0.9) + l2 * 0.9);
-  col += lc * 0.04 * (1.0 - smoothstep(0.0, 6.0, d));
+  vec3 lcol = mix(cA, cB, wave);
+  // flaques (bruit) : plus sombres, mais elles reflètent les néons
+  float pud = smoothstep(0.42, 0.62, vnoise(vW.xz * 0.16) * 0.7 + vnoise(vW.xz * 0.7) * 0.3) * wet;
+  vec3 col = vec3(0.012, 0.004, 0.03) * (1.0 - pud * 0.6) + lcol * (l * (0.35 + pulse * 0.9) + l2 * 0.9) * (1.0 - pud * 0.55);
+  col += lcol * 0.04 * (1.0 - smoothstep(0.0, 6.0, d));
+  vec3 refl = vec3(0.0);
+  for (int i = 0; i < 16; i++) { if (i >= ln) break;
+    vec2 L = lp[i].xz; vec2 dir = normalize(cam.xz - L + 1e-4); vec2 rel = vW.xz - L;
+    float along = dot(rel, dir); float across = abs(rel.x * dir.y - rel.y * dir.x);
+    float streak = exp(-across * across * (2.5 + max(along, 0.0) * 0.15)) * exp(-max(along, 0.0) * 0.09) * smoothstep(-1.5, 0.5, along);
+    refl += lc[i] * (streak * 0.6 + exp(-dot(rel, rel) * 0.12) * 0.22); }
+  float rip = 0.6 + 0.4 * sin(vnoise(vW.xz * 3.0 + t * 0.7) * 12.0);
+  col += refl * (0.18 + pud * 1.1 * rip);
+  col += (cA * 0.5 + cB * 0.5) * pud * 0.02 * (0.5 + 0.5 * sin(t + vW.x));
   float f = 1.0 - exp(-d * 0.035); col = mix(col, fogC, clamp(f, 0.0, 1.0));
   gl_FragColor = vec4(col, 1.0);
 }`;
@@ -89,7 +113,10 @@ export function buildLevel(scene, L, quality) {
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     root.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffffff, size: 1.5, sizeAttenuation: false, fog: false }))); }
   // sol néon
-  const gu = { cA: { value: new THREE.Color(P.a) }, cB: { value: new THREE.Color(P.b) }, fogC: { value: new THREE.Color(P.fog) }, t: { value: 0 }, pulse: { value: 0 }, scale: { value: 2 }, cam: { value: new THREE.Vector3() }, arenaR: { value: 20 } };
+  const gu = { cA: { value: new THREE.Color(P.a) }, cB: { value: new THREE.Color(P.b) }, fogC: { value: new THREE.Color(P.fog) }, t: { value: 0 }, pulse: { value: 0 }, scale: { value: 2 }, cam: { value: new THREE.Vector3() }, arenaR: { value: 20 },
+    lp: { value: Array.from({ length: 16 }, () => new THREE.Vector3()) }, lc: { value: Array.from({ length: 16 }, () => new THREE.Color()) }, ln: { value: 0 }, wet: { value: L.wet ?? 0.6 } };
+  const lights = []; const blinkers = []; const flick = [];
+  const addLight = (x, z, col) => { if (lights.length < (quality === 'low' ? 8 : 16)) { gu.lp.value[lights.length].set(x, 0, z); gu.lc.value[lights.length].set(col); lights.push(1); gu.ln.value = lights.length; } };
   const groundMat = new THREE.ShaderMaterial({ vertexShader: groundVS, fragmentShader: groundFS, uniforms: gu });
   const dark = new THREE.MeshLambertMaterial({ color: 0x0b0716, emissive: 0x05020c });
   const darker = new THREE.MeshBasicMaterial({ color: 0x050209 });
@@ -98,10 +125,39 @@ export function buildLevel(scene, L, quality) {
   const building = (w, h, d, x, z, col, ry = 0) => { const g = new THREE.BoxGeometry(w, h, d); const uv = g.attributes.uv;
       // UV répétées selon la taille (fenêtres régulières)
       for (let i = 0; i < uv.count; i++) { const face = Math.floor(i / 4); const sx = face < 2 ? d : w; uv.setXY(i, uv.getX(i) * sx / 4, uv.getY(i) * h / 4); }
-      const m = new THREE.Mesh(g, winMats[Math.floor(Math.random() * 4)]); m.position.set(x, h / 2, z); m.rotation.y = ry; m.updateMatrix(); root.add(m); if (col != null) lines.add(g, col, m.matrix); return m; };
+      const m = new THREE.Mesh(g, winMats[Math.floor(Math.random() * 4)]); m.position.set(x, h / 2, z); m.rotation.y = ry; m.updateMatrix(); root.add(m); if (col != null) lines.add(g, col, m.matrix);
+      if (quality !== 'low' || Math.random() < 0.5) decorate(w, h, d, x, z, ry, col); return m; };
+  const blinkMat = new THREE.MeshBasicMaterial({ color: 0xff2040 }); blinkers.push(blinkMat);
+  const antGeo = new THREE.CylinderGeometry(0.06, 0.06, 1, 4), dotGeo = new THREE.SphereGeometry(0.25, 6, 4), tankGeo = new THREE.CylinderGeometry(1, 1, 1.6, 10), ledgeGeo = new THREE.BoxGeometry(1, 0.35, 1);
+  const decorate = (w, h, d, x, z, ry, col) => {
+      const M = new THREE.Matrix4().makeRotationY(ry).setPosition(x, 0, z);
+      const L = (ax, ay, az) => new THREE.Vector3(ax, ay, az).applyMatrix4(M);
+      // corniche
+      const lg = new THREE.Mesh(ledgeGeo, dark); lg.scale.set(w + 0.5, 1, d + 0.5); lg.position.set(x, h + 0.17, z); lg.rotation.y = ry; root.add(lg);
+      // bandes néon horizontales (étages)
+      const c2 = Math.random() < 0.5 ? 0xff3fd2 : Math.random() < 0.5 ? 0x2bf0ff : 0xffb43a;
+      for (let fy = 3; fy < h - 1; fy += 3 + Math.floor(Math.random() * 3) * 3) { if (Math.random() < 0.55) continue; const hw = w / 2 + 0.02, hd = d / 2 + 0.02;
+        lines.seg(c2, [L(-hw, fy, hd), L(hw, fy, hd)]); lines.seg(c2, [L(hw, fy, hd), L(hw, fy, -hd)]); lines.seg(c2, [L(hw, fy, -hd), L(-hw, fy, -hd)]); lines.seg(c2, [L(-hw, fy, -hd), L(-hw, fy, hd)]); }
+      // antenne avec feu rouge clignotant
+      if (Math.random() < 0.45) { const ah = 2 + Math.random() * 4; const a = new THREE.Mesh(antGeo, darker); a.scale.y = ah; const pa = L(w * 0.25, h + ah / 2, 0); a.position.copy(pa); root.add(a);
+        const dt_ = new THREE.Mesh(dotGeo, blinkMat); dt_.position.copy(L(w * 0.25, h + ah, 0)); root.add(dt_); }
+      // réservoir d'eau sur le toit
+      else if (Math.random() < 0.4) { const tk = new THREE.Mesh(tankGeo, dark); tk.position.copy(L(-w * 0.2, h + 1.6, d * 0.1)); root.add(tk); const tm = new THREE.Matrix4().makeTranslation(tk.position.x, tk.position.y, tk.position.z); lines.add(tankGeo, col ?? 0x2bf0ff, tm); }
+      // enseigne verticale (néon qui clignote parfois)
+      if (Math.random() < 0.35) { const words = ['HÔTEL', 'BAR', 'CINÉ', 'KARAOKÉ', 'PIZZA', 'MOTEL', 'BINGO', 'DANSE', 'LAVOIR', 'CHIPS']; const cs = ['#ff4fd8', '#5ff6ff', '#ffb43a', '#7dff6a', '#a46bff'];
+        const mat = new THREE.MeshBasicMaterial({ map: vSignTex(words[Math.floor(Math.random() * words.length)], cs[Math.floor(Math.random() * cs.length)]), side: THREE.DoubleSide, fog: true });
+        const sh = Math.min(h * 0.6, 7); const sg = new THREE.Mesh(new THREE.PlaneGeometry(1.1, sh), mat);
+        const toC = Math.atan2(-x, -z); const pos = new THREE.Vector3(x, h * 0.55, z).add(new THREE.Vector3(-x, 0, -z).normalize().multiplyScalar(Math.max(w, d) / 2 + 0.6));
+        sg.position.copy(pos); sg.rotation.y = toC; root.add(sg); if (Math.random() < 0.4) flick.push(mat); }
+  };
   const roof = (r, h, x, y, z, col) => { const g = new THREE.ConeGeometry(r, h, 4); g.rotateY(Math.PI / 4); const m = new THREE.Mesh(g, dark); m.position.set(x, y + h / 2, z); m.updateMatrix(); root.add(m); lines.add(g, col, m.matrix); };
-  const lamp = (x, z, col) => { const g = new THREE.CylinderGeometry(0.08, 0.12, 4, 6); const m = new THREE.Mesh(g, darker); m.position.set(x, 2, z); root.add(m);
-      const b = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), new THREE.MeshBasicMaterial({ color: col })); b.position.set(x, 4.1, z); root.add(b); obstacles.push({ x, z, r: 0.35 }); };
+  const lampGeo = new THREE.CylinderGeometry(0.08, 0.12, 4, 6), lampHead = new THREE.SphereGeometry(0.28, 10, 8), lampHalo = new THREE.SphereGeometry(0.55, 10, 8);
+  const lamp = (x, z, col) => { const m = new THREE.Mesh(lampGeo, darker); m.position.set(x, 2, z); root.add(m);
+      const base = new THREE.Mesh(lampGeo, darker); base.scale.set(2.2, 0.08, 2.2); base.position.set(x, 0.15, z); root.add(base);
+      const b = new THREE.Mesh(lampHead, new THREE.MeshBasicMaterial({ color: col })); b.position.set(x, 4.1, z); root.add(b);
+      const h = new THREE.Mesh(lampHalo, new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false })); h.position.set(x, 4.1, z); root.add(h);
+      lines.seg(col, [new THREE.Vector3(x, 0.3, z), new THREE.Vector3(x, 3.85, z)]);
+      obstacles.push({ x, z, r: 0.35 }); addLight(x, z, col); };
   const chateau = (cx, cy, cz, s, col) => { // château fictif « à la québécoise » : tours et toits pointus
       const C = (w, h, d, x, y, z) => { const g = new THREE.BoxGeometry(w * s, h * s, d * s); const m = new THREE.Mesh(g, winMats[0]); const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * w / 3, uv.getY(i) * h / 3);
         m.position.set(cx + x * s, cy + (y + h / 2) * s, cz + z * s); m.updateMatrix(); root.add(m); lines.add(g, col, m.matrix); };
@@ -146,7 +202,12 @@ export function buildLevel(scene, L, quality) {
       if (Math.random() < 0.75) { const tx = signTex(signs[si++ % signs.length], scol[si % scol.length]); const sg = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 1.05), new THREE.MeshBasicMaterial({ map: tx, side: THREE.DoubleSide, fog: true }));
         if (Math.random() < 0.5) { sg.position.set(side * (W / 2 + 2.05), 3 + Math.random() * 3, z + d / 2); sg.rotation.y = -side * Math.PI / 2; }
         else { sg.position.set(side * (W / 2 + 0.9), 4 + Math.random() * 3, z + d / 2); sg.rotation.y = 0; sg.scale.set(0.6, 0.6, 1); }
-        root.add(sg); }
+        root.add(sg); addLight(side * (W / 2 + 1.2), z + d / 2, scol[si % scol.length]); if (Math.random() < 0.3) flick.push(sg.material); }
+      // vitrine éclairée + auvent rayé
+      const vc = [0xffb46a, 0xff6ad5, 0x6af3ff][Math.floor(Math.random() * 3)];
+      const win = new THREE.Mesh(new THREE.PlaneGeometry(d * 0.7, 2.2), new THREE.MeshBasicMaterial({ color: new THREE.Color(vc).multiplyScalar(0.55), fog: true }));
+      win.position.set(side * (W / 2 + 2.04), 1.4, z + d / 2); win.rotation.y = -side * Math.PI / 2; root.add(win);
+      if (Math.random() < 0.6) { const aw = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.12, d * 0.8), new THREE.MeshBasicMaterial({ map: stripeTex(vc), fog: true })); aw.position.set(side * (W / 2 + 1.4), 2.75, z + d / 2); aw.rotation.z = side * 0.35; root.add(aw); }
       z += d; }
     // clocher au bout de la rue + ruelles (points d'apparition)
     building(10, 22, 10, 0, -H / 2 - 22, P.b); roof(7.5, 18, 0, 22, -H / 2 - 22, 0x3dffb0);
@@ -188,13 +249,33 @@ export function buildLevel(scene, L, quality) {
   const dl = new THREE.DirectionalLight(P.a, 0.7); dl.position.set(5, 10, 3); root.add(dl);
   // météo
   const weather = makeWeather(root, L.weather, quality);
+  const mists = [];
+  if (quality !== 'low') { const mt = mistTex(); for (let i = 0; i < 4; i++) { const m = new THREE.Mesh(new THREE.PlaneGeometry(70, 70), new THREE.MeshBasicMaterial({ map: mt, color: i % 2 ? P.a : P.b, transparent: true, opacity: 0.035, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+    m.rotation.x = -Math.PI / 2; m.position.y = 0.25 + i * 0.22; m.userData.sp = (i % 2 ? 1 : -1) * (0.01 + i * 0.004); root.add(m); mists.push(m); } }
+  const motes = makeMotes(root, quality, [P.a, P.b, 0xffd23a]);
+  let bt = 0;
   return { root, gu, sky, bounds, obstacles, spawns, weather,
-    update(t, pulse, cam, dt) { gu.t.value = t; gu.pulse.value = pulse; gu.cam.value.copy(cam); weather.update(dt, cam); sky.position.copy(cam); } };
+    update(t, pulse, cam, dt) { gu.t.value = t; gu.pulse.value = pulse; gu.cam.value.copy(cam); weather.update(dt, cam); motes.update(dt, cam); sky.position.copy(cam);
+      for (const m of mists) { m.position.x = cam.x; m.position.z = cam.z; m.rotation.z += m.userData.sp * dt; }
+      bt += dt; blinkers.forEach(b => b.color.setHex(Math.sin(bt * 3) > 0.6 ? 0xff2040 : 0x200006));
+      for (const f of flick) { if (Math.random() < dt * 0.6) f.userData.off = 0.05 + Math.random() * 0.25; if (f.userData.off > 0) { f.userData.off -= dt; f.color.setScalar(0.25); } else f.color.setScalar(1); } } };
 }
 
 function dotTex() { const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d'); const g = x.createRadialGradient(16, 16, 0, 16, 16, 16);
   g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.4, 'rgba(255,255,255,0.6)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 32, 32); return new THREE.CanvasTexture(c); }
 export const DOT = { tex: null };
+function mistTex() { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
+  for (let i = 0; i < 40; i++) { const px = Math.random() * 128, py = Math.random() * 128, r = 10 + Math.random() * 30; const g = x.createRadialGradient(px, py, 0, px, py, r); g.addColorStop(0, 'rgba(255,255,255,0.35)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); }
+  const g = x.createRadialGradient(64, 64, 20, 64, 64, 64); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,1)'); x.globalCompositeOperation = 'destination-out'; x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; }
+function makeMotes(root, quality, cols) { // poussières néon qui flottent autour du joueur
+  const n = quality === 'low' ? 60 : 160, pos = new Float32Array(n * 3), off = new Float32Array(n * 3), col = new Float32Array(n * 3); const c = new THREE.Color();
+  for (let i = 0; i < n; i++) { off[i * 3] = (Math.random() - .5) * 30; off[i * 3 + 1] = Math.random() * 6; off[i * 3 + 2] = (Math.random() - .5) * 30; c.set(cols[i % cols.length]); col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b; }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  if (!DOT.tex) DOT.tex = dotTex();
+  const pts = new THREE.Points(g, new THREE.PointsMaterial({ map: DOT.tex, size: 0.12, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); pts.frustumCulled = false; root.add(pts);
+  let t = 0; return { update(dt, cam) { t += dt; for (let i = 0; i < n; i++) { const k = i * 3; pos[k] = cam.x + ((off[k] + Math.sin(t * 0.3 + i) * 2 - cam.x) % 30 + 45) % 30 - 15; pos[k + 1] = 0.3 + (off[k + 1] + t * 0.15 * (1 + i % 3)) % 6; pos[k + 2] = cam.z + ((off[k + 2] + Math.cos(t * 0.25 + i) * 2 - cam.z) % 30 + 45) % 30 - 15; } g.attributes.position.needsUpdate = true; } };
+}
 
 function makeWeather(root, kind, quality) {
   const low = quality === 'low';

@@ -117,3 +117,11 @@ body.touch #radio { bottom: auto; top: calc(2vh + var(--u) * 4.5); width: min(40
 #err { position: fixed; left: 0; right: 0; bottom: 0; background: #400; color: #fff; padding: .5em; font-size: 16px; z-index: 60; }
 @media (max-width: 900px) { #cards { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-height: 500px) { :root { --u: clamp(15px, 3.6vh, 24px); } .logo .l2 { font-size: calc(var(--u) * 6); } .logo .l1 { font-size: calc(var(--u) * 4); } .pcard .pd { min-height: 0; } .pcard svg { height: calc(var(--u) * 2.6); } #cards { gap: .8vh .8vw; } }
+
+#hitmark { position: absolute; left: 0; top: 0; opacity: 0; }
+#hitmark i { position: absolute; width: 3px; height: 11px; background: #fff; left: -1.5px; top: -5.5px; box-shadow: 0 0 6px #fff; }
+#hitmark i:nth-child(1) { transform: rotate(45deg) translateY(-15px); } #hitmark i:nth-child(2) { transform: rotate(135deg) translateY(-15px); }
+#hitmark i:nth-child(3) { transform: rotate(225deg) translateY(-15px); } #hitmark i:nth-child(4) { transform: rotate(315deg) translateY(-15px); }
+#hitmark.on { opacity: 1; } #hitmark.beat i { background: var(--pink); box-shadow: 0 0 8px var(--pink); }
+#hitmark.kill i { background: var(--gold); box-shadow: 0 0 10px var(--gold); height: 16px; top: -8px; }
+#floats div.num { font-size: calc(var(--u) * 1.1); } #floats div.num.big { font-size: calc(var(--u) * 1.5); }

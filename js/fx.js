@@ -26,21 +26,27 @@ export class FX {
     this.CN = 220; const cg = new THREE.CylinderGeometry(0.22, 0.22, 0.06, 8); cg.rotateX(Math.PI / 2);
     this.coinMesh = new THREE.InstancedMesh(cg, new THREE.MeshBasicMaterial({ color: 0x8dff3a }), this.CN); this.coinMesh.frustumCulled = false; scene.add(this.coinMesh);
     this.coins = []; this.dummy = new THREE.Object3D(); this.tmpC = new THREE.Color();
+    // éclairs lumineux (sprites additifs)
+    const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'); const gr = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.25, 'rgba(255,255,255,0.7)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
+    const ft = new THREE.CanvasTexture(c); this.flashes = [];
+    for (let i = 0; i < 14; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: ft, color: 0xffffff, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true })); sp.visible = false; scene.add(sp); this.flashes.push({ s: sp, t: 0, d: 0.18, size: 1 }); }
   }
   setScale(h) { this.mat.uniforms.scale.value = h * 0.6; }
-  burst(p, colors, count, speed = 6, size = 0.35, life = 0.7, grav = 9, up = 2) {
+  burst(p, colors, count, speed = 6, size = 0.35, life = 0.7, grav = 9, up = 2, confetti = false) {
     for (let k = 0; k < count; k++) {
       if (this.n >= this.N) this.kill(0); const i = this.n++;
       const th = Math.random() * 6.283, ph = Math.acos(2 * Math.random() - 1), s = speed * (0.3 + Math.random() * 0.9);
       this.pos[i * 3] = p.x; this.pos[i * 3 + 1] = p.y; this.pos[i * 3 + 2] = p.z;
       this.vel[i * 3] = Math.sin(ph) * Math.cos(th) * s; this.vel[i * 3 + 1] = Math.cos(ph) * s + up; this.vel[i * 3 + 2] = Math.sin(ph) * Math.sin(th) * s;
-      const c = this.tmpC.set(colors[k % colors.length]); this.base[i * 4] = c.r; this.base[i * 4 + 1] = c.g; this.base[i * 4 + 2] = c.b; this.base[i * 4 + 3] = size * (0.6 + Math.random() * 0.8);
+      const c = this.tmpC.set(colors[k % colors.length]); this.base[i * 4] = c.r; this.base[i * 4 + 1] = c.g; this.base[i * 4 + 2] = c.b; this.base[i * 4 + 3] = size * (confetti ? 0.5 + Math.random() * 2 : 0.6 + Math.random() * 0.8);
       this.max[i] = this.life[i] = life * (0.5 + Math.random() * 0.8); this.grav[i] = grav;
     }
   }
   kill(i) { const j = --this.n; if (i === j) return;
     for (let a = 0; a < 3; a++) { this.pos[i * 3 + a] = this.pos[j * 3 + a]; this.vel[i * 3 + a] = this.vel[j * 3 + a]; }
     for (let a = 0; a < 4; a++) this.base[i * 4 + a] = this.base[j * 4 + a]; this.life[i] = this.life[j]; this.max[i] = this.max[j]; this.grav[i] = this.grav[j]; }
+  flash(p, color, size, d = 0.18) { const f = this.flashes.find(f => !f.s.visible) || this.flashes[0]; f.s.visible = true; f.s.position.copy(p); f.s.material.color.set(color); f.t = 0; f.d = d; f.size = size; }
   ring(p, color, s0, s1, d, y = 0.06) { const r = this.rings.find(r => !r.m.visible) || this.rings[0]; r.m.visible = true; r.m.position.set(p.x, p.y + y, p.z); r.m.material.color.set(color); r.t = 0; r.d = d; r.s0 = s0; r.s1 = s1; }
   tracer(a, b, color) { const i = this.ti++ % this.TN; this.tpos.set([a.x, a.y, a.z, b.x, b.y, b.z], i * 6); this.tl[i] = 0.12; const c = this.tmpC.set(color); this.tc.set([c.r, c.g, c.b], i * 3); }
   coin(p, value) { if (this.coins.length >= this.CN) { this.coins[0].v += value; return; } this.coins.push({ x: p.x, y: p.y + 0.5, z: p.z, vx: (Math.random() - .5) * 5, vy: 4 + Math.random() * 3, vz: (Math.random() - .5) * 5, v: value, t: 0 }); }
@@ -54,6 +60,7 @@ export class FX {
       this.col[i * 3] = this.base[i * 4] * f; this.col[i * 3 + 1] = this.base[i * 4 + 1] * f; this.col[i * 3 + 2] = this.base[i * 4 + 2] * f; this.size[i] = this.base[i * 4 + 3] * (0.4 + 0.6 * f);
     }
     this.geo.setDrawRange(0, this.n); for (const k of ['position', 'color', 'size']) this.geo.attributes[k].needsUpdate = true;
+    for (const f of this.flashes) if (f.s.visible) { f.t += dt; const k = f.t / f.d; if (k >= 1) { f.s.visible = false; continue; } f.s.scale.setScalar(f.size * (0.4 + k * 0.9)); f.s.material.opacity = 1 - k * k; }
     for (const r of this.rings) if (r.m.visible) { r.t += dt; const f = r.t / r.d; if (f >= 1) { r.m.visible = false; continue; } const s = r.s0 + (r.s1 - r.s0) * (1 - (1 - f) * (1 - f)); r.m.scale.setScalar(s); r.m.material.opacity = 1 - f; }
     for (let i = 0; i < this.TN; i++) { if (this.tl[i] > 0) this.tl[i] -= dt; const f = Math.max(0, this.tl[i] / 0.12);
       for (let k = 0; k < 2; k++) { this.tcol[i * 6 + k * 3] = this.tc[i * 3] * f * (k ? 1 : 0.3); this.tcol[i * 6 + k * 3 + 1] = this.tc[i * 3 + 1] * f * (k ? 1 : 0.3); this.tcol[i * 6 + k * 3 + 2] = this.tc[i * 3 + 2] * f * (k ? 1 : 0.3); } }
@@ -68,5 +75,5 @@ export class FX {
     for (const c of this.coins) { d.position.set(c.x, c.y + Math.sin(c.t * 6) * 0.05, c.z); d.rotation.set(0, c.t * 5, 0); d.updateMatrix(); this.coinMesh.setMatrixAt(n++, d.matrix); }
     this.coinMesh.count = n; this.coinMesh.instanceMatrix.needsUpdate = true;
   }
-  clear() { this.n = 0; this.coins.length = 0; this.rings.forEach(r => r.m.visible = false); this.tl.fill(0); }
+  clear() { this.flashes.forEach(f => f.s.visible = false); this.n = 0; this.coins.length = 0; this.rings.forEach(r => r.m.visible = false); this.tl.fill(0); }
 }
