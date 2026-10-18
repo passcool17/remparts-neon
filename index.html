@@ -22,6 +22,7 @@
   <div id="cross"><div class="ch"></div><div id="beatL" class="bt"></div><div id="beatL2" class="bt"></div><div id="beatR" class="bt"></div><div id="beatR2" class="bt"></div><div id="beatC"></div><div id="hitmark"><i></i><i></i><i></i><i></i></div></div>
   <div id="streak"></div>
   <div id="altbox"><div id="altico"></div><div id="altname">RONDELLE</div><div id="altbar"><div id="altfill"></div></div></div>
+  <div id="beattrack"><div id="beattarget"></div><div id="judge"></div></div>
   <div id="banner"></div>
   <div id="toast"></div>
 </div>
@@ -32,6 +33,7 @@
   <div class="logo"><div class="l1">REMPARTS</div><div class="l2">NÉON</div><div class="sub">Trance, tuques et formulaires</div></div>
   <div class="menu">
     <button class="btn big" id="bPlay">JOUER</button>
+    <button class="btn" id="bRecs">RECORDS SURVIE</button>
     <button class="btn" id="bHelp">COMMENT JOUER</button>
     <button class="btn" id="bOpts">OPTIONS</button>
   </div>
@@ -41,6 +43,7 @@
 <section id="paths" class="screen hidden">
   <h1>CHOISIS TON ARME</h1>
   <div id="pathcards"></div>
+  <div id="modepick"></div>
   <div id="lvlpick"></div>
   <button class="btn" id="bBack1">◀ RETOUR</button>
 </section>
@@ -50,13 +53,14 @@
   <div class="panel helptxt">
     <p><b>But :</b> survis aux vagues. La musique les pilote : le <b>build-up</b> monte, le <b>drop</b> lâche la horde, le <b>breakdown</b> te laisse souffler.</p>
     <p><b>Sur le beat :</b> frappe ou tire au moment où les barres se rejoignent au centre du viseur : dégâts bonus. Pas obligé, juste payant.</p>
+    <p><b>Esquive :</b> pendant l'esquive, tu es intouchable. Esquive juste avant un coup pour une <b>esquive parfaite</b> (ralenti, charge rendue).</p>
     <p><b>Piasses néon :</b> ramasse-les et dépense-les au Dépanneur Néon entre les vagues.</p>
     <table><tr><th></th><th>Clavier / souris</th><th>Manette</th><th>Tactile</th></tr>
       <tr><td>Bouger</td><td>WASD / ZQSD</td><td>Stick gauche</td><td>Pouce gauche</td></tr>
       <tr><td>Viser</td><td>Souris</td><td>Stick droit</td><td>Glisser à droite</td></tr>
       <tr><td>Attaque</td><td>Clic gauche</td><td>RT</td><td>Bouton FEU (ou tir auto)</td></tr>
       <tr><td>Spécial</td><td>Clic droit / E</td><td>LT</td><td>SPÉCIAL</td></tr>
-      <tr><td>Sprint</td><td>Espace / Maj</td><td>A</td><td>SPRINT</td></tr>
+      <tr><td>Esquive</td><td>Espace / Maj</td><td>A</td><td>ESQUIVE</td></tr>
       <tr><td>Pause</td><td>Échap / P</td><td>Start</td><td>⏸</td></tr></table>
   </div>
   <button class="btn" id="bBack2">◀ RETOUR</button>
@@ -73,6 +77,12 @@
     <label>Tir auto (tactile) <input type="checkbox" id="oAuto"></label>
   </div>
   <button class="btn" id="bBack3">◀ RETOUR</button>
+</section>
+
+<section id="records" class="screen hidden">
+  <h1>RECORDS · SURVIE</h1>
+  <div class="panel"><table id="rectable" class="rectable"></table></div>
+  <button class="btn" id="bBack4">◀ RETOUR</button>
 </section>
 
 <section id="lvlcard" class="screen hidden"><div class="lvnum" id="lvnum">QUARTIER 1</div><div class="lvname" id="lvname"></div><div class="lvsub" id="lvsub"></div></section>
@@ -103,7 +113,7 @@
 <div id="touch" class="hidden">
   <div id="tl"><div id="knob0"><div id="knob"></div></div></div>
   <div id="tr"></div>
-  <button id="tFire" class="tb">FEU</button><button id="tAlt" class="tb">SPÉCIAL</button><button id="tDash" class="tb">SPRINT</button><button id="tPause" class="tb">⏸</button>
+  <button id="tFire" class="tb">FEU</button><button id="tAlt" class="tb">SPÉCIAL</button><button id="tDash" class="tb">ESQUIVE</button><button id="tPause" class="tb">⏸</button>
 </div>
 <div id="rotate" class="hidden">Tourne ton téléphone à l'horizontale ↻</div>
 <div id="err" class="hidden"></div>

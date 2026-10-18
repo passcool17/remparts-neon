@@ -1,0 +1,41 @@
+{
+ "path": "onde",
+ "mode": "survie",
+ "diff": 1,
+ "records": [],
+ "start": 0,
+ "won": true,
+ "minutes": 5,
+ "deaths": 0,
+ "shops": 4,
+ "state": "play",
+ "li": 0,
+ "wi": 4,
+ "kills": 128,
+ "score": 34998,
+ "beatHits": 137,
+ "shots": [
+  "/workspace/neon-quebec/shots/surv_test_1_titre.png",
+  "/workspace/neon-quebec/shots/surv_test_2_choix_arme.png",
+  "/workspace/neon-quebec/shots/surv_test_4_boutique.png",
+  "/workspace/neon-quebec/shots/surv_test_4_boutique_apres.png",
+  "/workspace/neon-quebec/shots/surv_test_3_combat_q1.png",
+  "/workspace/neon-quebec/shots/surv_test_5_boss_q1.png"
+ ],
+ "bestStreak": 80,
+ "up": {
+  "o_dmg": 4
+ },
+ "errors": [],
+ "log": [
+  "0s play Q1 V1 kills=0 cash=0 hp=100 fps=17",
+  "46s shop Q1 V1 kills=16 cash=65 hp=100 fps=12",
+  "52s play Q1 V2 kills=16 cash=25 hp=100 fps=15",
+  "94s shop Q1 V2 kills=36 cash=105 hp=100 fps=13",
+  "97s play Q1 V3 kills=36 cash=45 hp=100 fps=14",
+  "153s shop Q1 V3 kills=60 cash=161 hp=100 fps=13",
+  "155s play Q1 V4 kills=60 cash=71 hp=100 fps=14",
+  "207s shop Q1 V4 kills=88 cash=205 hp=92 fps=14",
+  "209s play Q1 V5 kills=88 cash=75 hp=92 fps=13"
+ ]
+}

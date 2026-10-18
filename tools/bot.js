@@ -59,6 +59,8 @@ function botBrain() {
   const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'] });
   const p = await b.newPage({ viewport: { width: 960, height: 540 } }); const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message)); p.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
+  const DIFFI = +(process.env.DIFF ?? 1), MODE = process.env.MODE || 'histoire';
+  await p.addInitScript(([d, m]) => { try { const k = 'remparts-neon-v1'; const sv = JSON.parse(localStorage.getItem(k) || '{}'); sv.diff = d; sv.mode = m; localStorage.setItem(k, JSON.stringify(sv)); } catch (e) {} }, [DIFFI, MODE]);
   await p.addInitScript(botBrain); if (process.env.STILL) await p.addInitScript(() => { window.__STILL = 1; });
   await p.goto(`http://localhost:${PORT}/?bot=1${process.env.Q ? '&q=' + process.env.Q : ''}`); await p.waitForTimeout(3000);
   const shots = []; const snap = async name => { const f = SH + PRE + '_' + name + '.png'; await p.screenshot({ path: f }); shots.push(f); console.log('capture', f); };
@@ -72,7 +74,7 @@ function botBrain() {
   const want = async (k, cond) => { if (!taken[k] && cond) { taken[k] = 1; await snap(k); } };
   while (Date.now() - t0 < MAXMS) {
     await p.waitForTimeout(350);
-    const s = await p.evaluate(() => { const G = __game.G; return { state: G.state, li: G.li, wi: G.wi, en: G.enemies.length, fx: __game.fx.n, cash: G.cash, hp: G.P ? Math.round(G.P.hp) : 0, boss: !!G.boss, kills: G.kills, score: G.score, fps: Math.round(1000 / __game.frameAvg), left: G.wave ? G.wave.left : -1, beat: G.beatHits, streak: G.streak }; });
+    const s = await p.evaluate(() => { const G = __game.G; if (G.state === 'shop' && window.__shopShot === undefined) {} return { state: G.state, li: G.li, wi: G.wi, en: G.enemies.length, fx: __game.fx.n, cash: G.cash, hp: G.P ? Math.round(G.P.hp) : 0, boss: !!G.boss, kills: G.kills, score: G.score, fps: Math.round(1000 / __game.frameAvg), left: G.wave ? G.wave.left : -1, beat: G.beatHits, streak: G.streak }; });
     const key = s.state + s.li + s.wi; if (key !== last) { last = key; const line = `${((Date.now() - t0) / 1000).toFixed(0)}s ${s.state} Q${s.li + 1} V${s.wi + 1} kills=${s.kills} cash=${s.cash} hp=${s.hp} fps=${s.fps}`; console.log(line); log.push(line); }
     if (s.state === 'play') {
       await want(`3_combat_q${s.li + 1}`, s.en >= 6 && s.fx > 220);
@@ -80,13 +82,15 @@ function botBrain() {
     }
     if (s.state === 'shop') { shops++; await p.waitForTimeout(1600); await want('4_boutique', true); const r = await p.evaluate(() => __botShop()); console.log('  achats', JSON.stringify(r.bought), 'reste', r.cash);
       await want('4_boutique_apres', true); await p.click('#bNext'); await p.waitForTimeout(300); }
+    if (s.state === 'dead' && MODE === 'survie') { deaths++; await p.waitForTimeout(1500); await snap('8_survie_fin'); break; }
     if (s.state === 'dead') { deaths++; console.log('  K.-O. Q' + (s.li + 1) + ' V' + (s.wi + 1)); await want('6_ko', true); await p.waitForTimeout(800); await p.click('#bRetry'); }
     if (s.state === 'win') { await p.waitForTimeout(2500); await snap('7_victoire'); break; }
   }
   const fin = await p.evaluate(() => { const G = __game.G; return { state: G.state, li: G.li, wi: G.wi, kills: G.kills, score: G.score, beatHits: G.beatHits, shots: G.shots, bestStreak: G.bestStreak, up: G.up }; });
-  const res = { path: PATH, start: START, won: fin.state === 'win', minutes: +((Date.now() - t0) / 60000).toFixed(1), deaths, shops, ...fin, errors: errs, shots, log };
+  const recs = await p.evaluate(() => JSON.parse(localStorage.getItem('remparts-neon-v1') || '{}').scores || []);
+  const res = { path: PATH, mode: MODE, diff: DIFFI, records: recs, start: START, won: MODE === 'survie' ? fin.wi >= 4 : fin.state === 'win', minutes: +((Date.now() - t0) / 60000).toFixed(1), deaths, shops, ...fin, errors: errs, shots, log };
   fs.writeFileSync(SH + PRE + '_result.json', JSON.stringify(res, null, 1));
-  console.log('RESULTAT', JSON.stringify({ path: PATH, won: res.won, minutes: res.minutes, deaths, kills: fin.kills, score: fin.score, beatHits: fin.beatHits, shots: fin.shots, errors: errs.length }));
+  console.log('RESULTAT', JSON.stringify({ path: PATH, mode: MODE, wave: fin.wi + 1, won: res.won, minutes: res.minutes, deaths, kills: fin.kills, score: fin.score, beatHits: fin.beatHits, shots: fin.shots, errors: errs.length }));
   if (errs.length) console.log(errs.slice(0, 10).join('\n'));
   await b.close(); srv.close(); process.exit(errs.length || !res.won ? 1 : 0);
 })();
