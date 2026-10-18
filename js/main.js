@@ -59,7 +59,7 @@ const DIFF = [{ name: 'Facile', hp: 0.7, dmg: 0.6, n: 0.8, cash: 1.15 }, { name:
 const UPG = [
   { id: 'hp', name: 'Poutine double', desc: '+25 PV max, et ça soigne', max: 5, cost: [30, 50, 70, 105, 140], c: '#ff3fd2' },
   { id: 'spd', name: 'Bottes à crampons', desc: '+10 % de vitesse', max: 3, cost: [40, 70, 105], c: '#ffd23a' },
-  { id: 'dash', name: 'Patins aiguisés', desc: 'Sprint plus souvent (2 charges au niv. 2)', max: 3, cost: [40, 70, 105], c: '#2bf0ff' },
+  { id: 'dash', name: 'Patins aiguisés', desc: 'Esquive plus souvent (2 charges au niv. 2)', max: 3, cost: [40, 70, 105], c: '#2bf0ff' },
   { id: 'beat', name: 'Métronome de poche', desc: 'Beat plus facile à attraper, bonus +25 %', max: 3, cost: [45, 80, 130], c: '#ff3fd2' },
   { id: 'mag', name: 'Aimant à piasses', desc: 'Ramasse de plus loin, +10 % de piasses', max: 3, cost: [25, 50, 80], c: '#8dff3a' },
   { id: 'heal', name: 'Soupe aux pois', desc: 'Soin complet, tout de suite', max: 99, cost: [20], c: '#8dff3a', use: true },
@@ -420,7 +420,7 @@ function updRadio(dt) { const R = G.radio; if (!R) return; if (R.shown < R.text.
 
 // ---------- Flux de jeu ----------
 const screens = ['title', 'paths', 'help', 'opts', 'shop', 'pause', 'over', 'win', 'lvlcard', 'records'];
-function show(id) { screens.forEach(s => $(s).classList.toggle('hidden', s !== id && !(id === 'shop' && s === 'none'))); G.screen = id; focusFirst(); }
+function show(id) { screens.forEach(s => $(s).classList.toggle('hidden', s !== id && !(id === 'shop' && s === 'none'))); G.screen = id; document.body.classList.toggle('shopping', id === 'shop'); focusFirst(); }
 function setHud(on) { $('hud').classList.toggle('hidden', !on); $('touch').classList.toggle('hidden', !(on && isTouch)); }
 function newPlayer() { const L = LEVELS[G.li]; const b = L.arena; const z = b.type === 'circle' ? 13 : b.h / 2 - 8;
   G.P = { x: 0, z, yaw: 0, pitch: 0, vx: 0, vz: 0, kx: 0, kz: 0, hp: G.st.hpMax, hpMax: G.st.hpMax, inv: 0, dashT: 0, dashN: G.st.dashMax, dashRe: 0, fireCd: 0, altCd: 0, bob: 0, dx: 0, dz: 0 }; }

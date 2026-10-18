@@ -44,9 +44,9 @@ function botBrain() {
     I.botMz = wx * -Math.sin(P.yaw) + wz * -Math.cos(P.yaw); I.botMx = wx * Math.cos(P.yaw) + wz * -Math.sin(P.yaw);
   };
   window.__botShop = () => {
-    const api = __game, G = api.G; const pr = { baton: ['b_dmg', 'hp', 'b_arc', 'b_leech', 'b_dmg', 'b_puck', 'dash', 'hp', 'b_dmg', 'beat', 'spd', 'b_arc', 'b_leech', 'b_puck', 'mag'],
-      pelle: ['p_dmg', 'p_rate', 'hp', 'p_dmg', 'p_burst', 'p_rate', 'dash', 'p_pierce', 'hp', 'beat', 'p_dmg', 'spd', 'p_rate', 'mag'],
-      onde: ['o_dmg', 'o_rad', 'hp', 'o_dmg', 'o_pulse', 'o_chain', 'dash', 'hp', 'o_rad', 'beat', 'o_dmg', 'spd', 'o_chain', 'mag'] }[G.path];
+    const api = __game, G = api.G; const pr = { baton: ['b_dmg', 'hp', 'b_arc', 'b_leech', 'b_dmg', 'b_puck', 'dash', 'hp', 'b_dmg', 'beat', 'spd', 'b_arc', 'b_leech', 'b_puck', 'mag', 'armor', 'regen', 'crit', 'boom', 'xtra'],
+      pelle: ['p_dmg', 'p_rate', 'hp', 'p_dmg', 'p_burst', 'p_rate', 'dash', 'p_pierce', 'hp', 'beat', 'p_dmg', 'spd', 'p_rate', 'mag', 'armor', 'regen', 'crit', 'boom', 'xtra'],
+      onde: ['o_dmg', 'o_rad', 'hp', 'o_dmg', 'o_pulse', 'o_chain', 'dash', 'hp', 'o_rad', 'beat', 'o_dmg', 'spd', 'o_chain', 'mag', 'armor', 'regen', 'crit', 'boom', 'xtra'] }[G.path];
     const bought = [];
     if (G.P.hp < G.P.hpMax * 0.6 && G.cash >= 15 && api.buy('heal')) bought.push('heal');
     for (let it = 0; it < 30; it++) { let done = false; for (const id of pr) { const u = api.UPG.find(x => x.id === id); if ((G.up[id] || 0) >= u.max) continue; if (G.cash >= api.costOf(u)) { api.buy(id); bought.push(id); done = true; break; } else break; } if (!done) break; }

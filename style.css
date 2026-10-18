@@ -98,7 +98,9 @@ h1.red { color: #ff4f6d !important; }
 .card:hover, .card:focus, .card.focus { outline: none; background: rgba(60,0,80,.95); box-shadow: 0 0 18px var(--c, var(--cyan)); }
 .card.bought { animation: bought .35s; } @keyframes bought { 0% { transform: scale(1.08); background: var(--c); } 100% { transform: scale(1); } }
 .shopfoot { display: flex; align-items: center; gap: 3vw; } #nextinfo { color: var(--gold); font-size: calc(var(--u) * 1.1); max-width: 40vw; }
-#shop ~ #radio, body.shopping #radio { }
+body.shopping #radio { width: min(30vw, 340px); font-size: calc(var(--u) * .9); }
+body.shopping .shopfoot { padding-left: min(24vw, 280px); gap: 2vw; } body.shopping #nextinfo { max-width: 30vw; }
+body.touch.shopping .shopfoot { padding-left: 0; }
 /* tactile */
 #touch { position: fixed; inset: 0; pointer-events: none; }
 #tl { position: absolute; left: 0; bottom: 0; width: 42%; height: 78%; pointer-events: auto; }
