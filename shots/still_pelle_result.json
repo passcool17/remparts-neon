@@ -1,0 +1,42 @@
+{
+ "path": "pelle",
+ "start": 0,
+ "won": false,
+ "minutes": 4,
+ "deaths": 4,
+ "shops": 2,
+ "state": "play",
+ "li": 0,
+ "wi": 2,
+ "kills": 62,
+ "score": 11095,
+ "beatHits": 325,
+ "shots": [
+  "/workspace/neon-quebec/shots/still_pelle_1_titre.png",
+  "/workspace/neon-quebec/shots/still_pelle_2_choix_arme.png",
+  "/workspace/neon-quebec/shots/still_pelle_4_boutique.png",
+  "/workspace/neon-quebec/shots/still_pelle_4_boutique_apres.png",
+  "/workspace/neon-quebec/shots/still_pelle_6_ko.png",
+  "/workspace/neon-quebec/shots/still_pelle_5_boss_q1.png"
+ ],
+ "bestStreak": 57,
+ "up": {
+  "p_dmg": 3
+ },
+ "errors": [],
+ "log": [
+  "0s play Q1 V1 kills=0 cash=0 hp=100 fps=36",
+  "33s shop Q1 V1 kills=22 cash=81 hp=100 fps=59",
+  "36s play Q1 V2 kills=22 cash=41 hp=100 fps=43",
+  "70s dead Q1 V2 kills=50 cash=139 hp=0 fps=30",
+  "72s play Q1 V2 kills=22 cash=41 hp=100 fps=50",
+  "110s dead Q1 V2 kills=50 cash=142 hp=0 fps=30",
+  "111s play Q1 V2 kills=22 cash=41 hp=100 fps=53",
+  "141s dead Q1 V2 kills=44 cash=107 hp=0 fps=28",
+  "143s play Q1 V2 kills=22 cash=41 hp=100 fps=48",
+  "179s dead Q1 V2 kills=52 cash=145 hp=0 fps=27",
+  "180s play Q1 V2 kills=22 cash=41 hp=100 fps=44",
+  "217s shop Q1 V2 kills=54 cash=173 hp=20 fps=28",
+  "220s play Q1 V3 kills=54 cash=3 hp=100 fps=41"
+ ]
+}

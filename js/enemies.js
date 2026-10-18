@@ -34,7 +34,7 @@ export function makeEnemy(type) {
   const eyeM = basic(0xffffff);
   if (type === 'cone' || type === 'grandcone') {
     const s = type === 'grandcone' ? 3.4 : 1; body.scale.setScalar(s);
-    const orange = L(0xff6a10, 0.45), white = basic(0xffffff);
+    const orange = L(0xff6a10, type === 'grandcone' ? 1.1 : 0.7), white = basic(0xffffff);
     m(g.coneB, L(0x331100, 0.2), 0, 0.07, 0, 1, 1, 1, body);
     m(g.cone, orange, 0, 0.62, 0, 1, 1, 1, body); m(g.band, white, 0, 0.55, 0, 1, 1, 1, body); m(g.band, white, 0, 0.8, 0, 0.62, 1, 0.62, body);
     m(g.eye, basic(0x111111), -0.12, 0.98, 0.2, 1, 1, 1, body); m(g.eye, basic(0x111111), 0.12, 0.98, 0.2, 1, 1, 1, body);

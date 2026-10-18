@@ -55,24 +55,24 @@ setupQuality(); onResize();
 
 // ---------- Améliorations ----------
 const UPG = [
-  { id: 'hp', name: 'Poutine double', desc: '+25 PV max, et ça soigne', max: 5, cost: [20, 32, 48, 70, 95], c: '#ff3fd2' },
-  { id: 'spd', name: 'Bottes à crampons', desc: '+10 % de vitesse', max: 3, cost: [25, 45, 70], c: '#ffd23a' },
-  { id: 'dash', name: 'Patins aiguisés', desc: 'Sprint plus souvent (2 charges au niv. 2)', max: 3, cost: [25, 45, 70], c: '#2bf0ff' },
-  { id: 'beat', name: 'Métronome de poche', desc: 'Beat plus facile à attraper, bonus +25 %', max: 3, cost: [30, 55, 85], c: '#ff3fd2' },
-  { id: 'mag', name: 'Aimant à piasses', desc: 'Ramasse de plus loin, +10 % de piasses', max: 3, cost: [18, 35, 55], c: '#8dff3a' },
-  { id: 'heal', name: 'Soupe aux pois', desc: 'Soin complet, tout de suite', max: 99, cost: [15], c: '#8dff3a', use: true },
-  { id: 'b_dmg', path: 'baton', name: 'Ruban de friction', desc: '+25 % de dégâts', max: 5, cost: [25, 40, 60, 85, 115], c: '#ff3fd2' },
-  { id: 'b_arc', path: 'baton', name: 'Palette courbée', desc: 'Coup plus large et plus long', max: 3, cost: [30, 55, 85], c: '#ffd23a' },
-  { id: 'b_puck', path: 'baton', name: 'Lancer frappé', desc: 'Rondelle : recharge −25 %, perce +1', max: 3, cost: [30, 55, 85], c: '#2bf0ff' },
-  { id: 'b_leech', path: 'baton', name: 'Mise en échec', desc: '+3 PV par élimination', max: 3, cost: [28, 50, 80], c: '#8dff3a' },
-  { id: 'p_dmg', path: 'pelle', name: 'Sel de déglaçage', desc: '+20 % de dégâts', max: 5, cost: [25, 40, 60, 85, 115], c: '#ffb43a' },
-  { id: 'p_rate', path: 'pelle', name: 'Gâchette chauffée', desc: '+15 % de cadence', max: 5, cost: [25, 40, 60, 85, 115], c: '#ff3fd2' },
-  { id: 'p_burst', path: 'pelle', name: 'Grosse bordée', desc: 'Clic droit : +3 plombs, recharge −15 %', max: 3, cost: [30, 55, 85], c: '#2bf0ff' },
-  { id: 'p_pierce', path: 'pelle', name: 'Grenaille de glace', desc: 'Les tirs traversent 1 ennemi de plus', max: 2, cost: [45, 90], c: '#8dff3a' },
-  { id: 'o_dmg', path: 'onde', name: 'Condensateur boréal', desc: '+20 % de dégâts', max: 5, cost: [25, 40, 60, 85, 115], c: '#2bf0ff' },
-  { id: 'o_rad', path: 'onde', name: 'Résonance', desc: 'Explosions plus grosses', max: 4, cost: [30, 50, 75, 105], c: '#ff3fd2' },
-  { id: 'o_pulse', path: 'onde', name: 'Pulsation', desc: 'Clic droit : recharge −20 %, +30 % dégâts', max: 3, cost: [30, 55, 85], c: '#ffd23a' },
-  { id: 'o_chain', path: 'onde', name: 'Arc électrique', desc: 'Chaque explosion frappe +1 ennemi proche', max: 3, cost: [35, 60, 95], c: '#8dff3a' },
+  { id: 'hp', name: 'Poutine double', desc: '+25 PV max, et ça soigne', max: 5, cost: [30, 50, 70, 105, 140], c: '#ff3fd2' },
+  { id: 'spd', name: 'Bottes à crampons', desc: '+10 % de vitesse', max: 3, cost: [40, 70, 105], c: '#ffd23a' },
+  { id: 'dash', name: 'Patins aiguisés', desc: 'Sprint plus souvent (2 charges au niv. 2)', max: 3, cost: [40, 70, 105], c: '#2bf0ff' },
+  { id: 'beat', name: 'Métronome de poche', desc: 'Beat plus facile à attraper, bonus +25 %', max: 3, cost: [45, 80, 130], c: '#ff3fd2' },
+  { id: 'mag', name: 'Aimant à piasses', desc: 'Ramasse de plus loin, +10 % de piasses', max: 3, cost: [25, 50, 80], c: '#8dff3a' },
+  { id: 'heal', name: 'Soupe aux pois', desc: 'Soin complet, tout de suite', max: 99, cost: [20], c: '#8dff3a', use: true },
+  { id: 'b_dmg', path: 'baton', name: 'Ruban de friction', desc: '+25 % de dégâts', max: 5, cost: [40, 60, 90, 130, 170], c: '#ff3fd2' },
+  { id: 'b_arc', path: 'baton', name: 'Palette courbée', desc: 'Coup plus large et plus long', max: 3, cost: [45, 80, 130], c: '#ffd23a' },
+  { id: 'b_puck', path: 'baton', name: 'Lancer frappé', desc: 'Rondelle : recharge −25 %, perce +1', max: 3, cost: [45, 80, 130], c: '#2bf0ff' },
+  { id: 'b_leech', path: 'baton', name: 'Mise en échec', desc: '+3 PV par élimination', max: 3, cost: [40, 75, 120], c: '#8dff3a' },
+  { id: 'p_dmg', path: 'pelle', name: 'Sel de déglaçage', desc: '+20 % de dégâts', max: 5, cost: [40, 60, 90, 130, 170], c: '#ffb43a' },
+  { id: 'p_rate', path: 'pelle', name: 'Gâchette chauffée', desc: '+15 % de cadence', max: 5, cost: [40, 60, 90, 130, 170], c: '#ff3fd2' },
+  { id: 'p_burst', path: 'pelle', name: 'Grosse bordée', desc: 'Clic droit : +3 plombs, recharge −15 %', max: 3, cost: [45, 80, 130], c: '#2bf0ff' },
+  { id: 'p_pierce', path: 'pelle', name: 'Grenaille de glace', desc: 'Les tirs traversent 1 ennemi de plus', max: 2, cost: [70, 135], c: '#8dff3a' },
+  { id: 'o_dmg', path: 'onde', name: 'Condensateur boréal', desc: '+20 % de dégâts', max: 5, cost: [40, 60, 90, 130, 170], c: '#2bf0ff' },
+  { id: 'o_rad', path: 'onde', name: 'Résonance', desc: 'Explosions plus grosses', max: 4, cost: [45, 75, 110, 160], c: '#ff3fd2' },
+  { id: 'o_pulse', path: 'onde', name: 'Pulsation', desc: 'Clic droit : recharge −20 %, +30 % dégâts', max: 3, cost: [45, 80, 130], c: '#ffd23a' },
+  { id: 'o_chain', path: 'onde', name: 'Arc électrique', desc: 'Chaque explosion frappe +1 ennemi proche', max: 3, cost: [50, 90, 140], c: '#8dff3a' },
 ];
 function computeStats() {
   const lv = id => G.up[id] || 0, p = G.path;
@@ -110,29 +110,29 @@ function buildViewmodel() {
   const B = c => new THREE.MeshBasicMaterial({ color: c });
   const box = (w, h, d, x, y, z, mat, rx = 0, ry = 0, rz = 0) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.rotation.set(rx, ry, rz); g.add(m); return m; };
   if (p === 'baton') {
-    box(0.05, 0.05, 1.2, 0, 0.05, -0.2, M(0x222233), 0.25); box(0.052, 0.052, 0.18, 0, 0.2, 0.33, B(0xffffff), 0.25);
-    box(0.05, 0.12, 0.34, -0.12, -0.11, -0.78, B(0xff3fd2), 0.25, 1.35); box(0.055, 0.03, 0.36, -0.12, -0.05, -0.78, B(0xffffff), 0.25, 1.35);
-    box(0.054, 0.054, 0.4, 0, 0.0, -0.4, B(0xff3fd2), 0.25);
-    g.rotation.set(0.2, 0.15, -0.35);
+    box(0.045, 0.045, 1.0, 0, 0, -0.35, M(0x221a33)); box(0.047, 0.012, 0.9, 0, 0.022, -0.38, B(0xff3fd2));
+    box(0.05, 0.05, 0.12, 0, 0, -0.06, B(0xffffff)); // ruban
+    box(0.24, 0.1, 0.04, -0.1, -0.02, -0.86, M(0x221a33)); box(0.25, 0.022, 0.045, -0.1, 0.035, -0.86, B(0xff3fd2)); box(0.25, 0.022, 0.045, -0.1, -0.075, -0.86, B(0x2bf0ff));
+    g.rotation.set(-0.35, 0.35, -0.25); g.position.set(0.02, 0.02, 0.1);
   } else if (p === 'pelle') {
     box(0.05, 0.05, 0.9, 0, 0, 0, M(0x553311)); box(0.16, 0.06, 0.08, 0, 0, 0.42, M(0x222222));
     box(0.34, 0.03, 0.36, 0, -0.03, -0.58, M(0xffb43a, 0.5), -0.15); box(0.36, 0.035, 0.03, 0, -0.06, -0.77, B(0xffffff), -0.15);
     const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.7, 8), B(0x2bf0ff)); barrel.rotation.x = Math.PI / 2; barrel.position.set(0, -0.08, -0.35); g.add(barrel);
     g.rotation.set(0.05, 0.08, 0);
   } else {
-    const core = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 12), B(0xffffff)); g.add(core);
-    const shell = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 12), new THREE.MeshBasicMaterial({ color: 0x2bf0ff, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false })); g.add(shell);
-    box(0.16, 0.12, 0.3, 0.02, -0.12, 0.22, M(0x1a1a4a, 0.4)); box(0.17, 0.02, 0.31, 0.02, -0.05, 0.22, B(0x2bf0ff));
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.065, 16, 12), B(0xdffcff)); g.add(core);
+    const shell = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 12), new THREE.MeshBasicMaterial({ color: 0x2bf0ff, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false })); g.add(shell);
+    box(0.11, 0.08, 0.24, 0.02, -0.1, 0.18, M(0x1a1a4a, 0.4)); box(0.115, 0.012, 0.25, 0.02, -0.055, 0.18, B(0x2bf0ff));
     g.position.set(-0.02, 0.06, -0.1);
   }
   // anneaux d'amélioration : on les voit tout de suite
   const n = UPG.filter(u => u.path === p).reduce((a, u) => a + (G.up[u.id] || 0), 0);
   const cols = [0xff3fd2, 0x2bf0ff, 0xffd23a, 0x8dff3a];
   for (let i = 0; i < Math.min(n, 12); i++) {
-    if (p === 'onde') { const r = new THREE.Mesh(new THREE.TorusGeometry(0.19 + (i % 3) * 0.025, 0.004, 4, 24), B(cols[i % 4])); r.position.set(-0.02, 0.06, -0.1); r.rotation.set(Math.random() * 3, Math.random() * 3, 0); r.userData.spin = (i % 2 ? 1 : -1) * (1.5 + i * 0.3); vm.add(r); vmGlow.push(r); }
+    if (p === 'onde') { const r = new THREE.Mesh(new THREE.TorusGeometry(0.13 + (i % 3) * 0.02, 0.003, 4, 24), B(cols[i % 4])); r.position.set(-0.02, 0.06, -0.1); r.rotation.set(Math.random() * 3, Math.random() * 3, 0); r.userData.spin = (i % 2 ? 1 : -1) * (1.5 + i * 0.3); vm.add(r); vmGlow.push(r); }
     else { // bagues lumineuses le long du manche / canon
       const r = new THREE.Mesh(new THREE.TorusGeometry(p === 'pelle' ? 0.045 : 0.04, 0.009, 4, 12), B(cols[i % 4]));
-      if (p === 'pelle') { r.position.set(0, -0.08, -0.1 - i * 0.045); } else { r.position.set(0, 0.05, 0.05 - i * 0.06); }
+      if (p === 'pelle') { r.position.set(0, -0.08, -0.1 - i * 0.045); } else { r.position.set(0, 0, -0.16 - i * 0.06); }
       g.add(r); r.userData.spin = 0; vmGlow.push(r); } }
   vm.userData.g = g;
 }
@@ -282,7 +282,7 @@ function killEnemy(e, on) {
   fx.burst(c, T.colors, boss ? 280 : 46, boss ? 18 : 9, boss ? 0.8 : 0.42, boss ? 1.4 : 0.9, 7, 3);
   fx.burst(c, [0xffffff, 0xff3fd2, 0x2bf0ff], boss ? 80 : 14, boss ? 20 : 13, 0.22, 0.35, 0, 0);
   fx.ring(new V3(e.x, 0, e.z), T.colors[0], 0.3, boss ? 16 : 3.6, boss ? 0.9 : 0.45); if (on) fx.ring(new V3(e.x, 0, e.z), 0xff3fd2, 0.3, boss ? 18 : 5, 0.55);
-  const total = Math.round(T.cash * L.cashMul * G.st.cashMul) + (on ? 1 : 0); const nc = Math.min(total, boss ? 20 : 4);
+  const total = Math.round(T.cash * 0.85 * L.cashMul * G.st.cashMul) + (on ? 1 : 0); const nc = Math.min(total, boss ? 20 : 4);
   for (let i = 0; i < nc; i++) fx.coin(c, Math.floor(total / nc) + (i < total % nc ? 1 : 0));
   const mult = 1 + Math.min(G.streak, 40) * 0.025; G.score += Math.round(T.score * mult * (on ? 1.25 : 1)); G.kills++; music.kill(G.kills);
   if (G.st.leech) G.P.hp = Math.min(G.P.hpMax, G.P.hp + G.st.leech);
@@ -363,7 +363,7 @@ function setHud(on) { $('hud').classList.toggle('hidden', !on); $('touch').class
 function newPlayer() { const L = LEVELS[G.li]; const b = L.arena; const z = b.type === 'circle' ? 13 : b.h / 2 - 8;
   G.P = { x: 0, z, yaw: 0, pitch: 0, vx: 0, vz: 0, kx: 0, kz: 0, hp: G.st.hpMax, hpMax: G.st.hpMax, inv: 0, dashT: 0, dashN: G.st.dashMax, dashRe: 0, fireCd: 0, altCd: 0, bob: 0, dx: 0, dz: 0 }; }
 function startRun(path, li = 0) {
-  music.init(); G.path = path; G.li = li; G.wi = 0; G.cash = li * 60; G.score = 0; G.kills = 0; G.up = {}; G.streak = 0; G.bestStreak = 0; G.deaths = 0; G.beatHits = 0; G.shots = 0; G.dmgTaken = 0; G.t0 = performance.now();
+  music.init(); G.path = path; G.li = li; G.wi = 0; G.cash = li * 220; G.score = 0; G.kills = 0; G.up = {}; G.streak = 0; G.bestStreak = 0; G.deaths = 0; G.beatHits = 0; G.shots = 0; G.dmgTaken = 0; G.t0 = performance.now();
   computeStats(); buildViewmodel(); startLevel(li);
 }
 function clearField() { for (const e of G.enemies) removeEnemy(e); G.enemies = []; for (const p of G.projs) if (!p.dead) freeProj(p); G.projs = []; G.shocks = []; fx.clear(); G.boss = null; $('bossbox').classList.add('hidden'); }

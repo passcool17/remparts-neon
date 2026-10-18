@@ -39,6 +39,7 @@ function botBrain() {
     else { if (Math.abs(P.x) > b.w / 2 - 3) wx -= Math.sign(P.x) * 1.6; if (Math.abs(P.z) > b.h / 2 - 7) wz -= Math.sign(P.z) * 1.6; }
     if (!best || bs > 9) { let c0 = null, cd = 1e9; for (const c of api.fx.coins) { const d = Math.hypot(c.x - P.x, c.z - P.z); if (d < cd) { cd = d; c0 = c; } } if (c0 && cd > 0.5) { wx += (c0.x - P.x) / cd; wz += (c0.z - P.z) / cd; } }
     if (P.hp < P.hpMax * 0.4 && G.enemies.some(e => Math.hypot(e.x - P.x, e.z - P.z) < 2.2 + e.T.r)) I.dashReq = true;
+    if (window.__STILL) { wx = 0; wz = 0; I.dashReq = false; }
     const l = Math.hypot(wx, wz); if (l > 1) { wx /= l; wz /= l; }
     I.botMz = wx * -Math.sin(P.yaw) + wz * -Math.cos(P.yaw); I.botMx = wx * Math.cos(P.yaw) + wz * -Math.sin(P.yaw);
   };
@@ -58,7 +59,7 @@ function botBrain() {
   const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'] });
   const p = await b.newPage({ viewport: { width: 960, height: 540 } }); const errs = [];
   p.on('pageerror', e => errs.push('pageerror: ' + e.message)); p.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
-  await p.addInitScript(botBrain);
+  await p.addInitScript(botBrain); if (process.env.STILL) await p.addInitScript(() => { window.__STILL = 1; });
   await p.goto(`http://localhost:${PORT}/?bot=1${process.env.Q ? '&q=' + process.env.Q : ''}`); await p.waitForTimeout(3000);
   const shots = []; const snap = async name => { const f = SH + PRE + '_' + name + '.png'; await p.screenshot({ path: f }); shots.push(f); console.log('capture', f); };
   if (START === 0) await snap('1_titre');

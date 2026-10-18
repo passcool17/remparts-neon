@@ -3,7 +3,7 @@ import * as THREE from 'three';
 
 const PVS = `attribute vec3 color; attribute float size; varying vec3 vC; uniform float scale;
 void main(){ vC = color; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = size * scale / -mv.z; gl_Position = projectionMatrix * mv; }`;
-const PFS = `varying vec3 vC; void main(){ vec2 d = gl_PointCoord - 0.5; float r = dot(d, d); if (r > 0.25) discard; float a = 1.0 - r * 4.0; gl_FragColor = vec4(vC * (0.4 + a * 1.2), 1.0); }`;
+const PFS = `varying vec3 vC; void main(){ vec2 d = gl_PointCoord - 0.5; float r = dot(d, d); if (r > 0.25) discard; float a = 1.0 - r * 4.0; gl_FragColor = vec4(vC * (0.22 + a * 0.7), 1.0); }`;
 
 export class FX {
   constructor(scene, quality) {
