@@ -292,7 +292,7 @@ const T_R = e => e.T.r;
 function onBossBeat(e, b) {
   if (e.dead) return;
   if (e.type === 'grandcone') { if (b % 8 === 0 && e.state === 'walk' && e.born >= 1) { e.state = 'jump'; e.st = 0; } if (b % 16 === 8 && G.enemies.length < G.cap) { spawn('cone', { x: e.x + 3, z: e.z }); spawn('cone', { x: e.x - 3, z: e.z }); } }
-  if (e.type === 'nid') { if (b % 8 === 0 && e.state === 'under') { e.state = 'tele'; e.st = 0; e.tx = G.P.x; e.tz = G.P.z; fx.ring(new V3(e.tx, 0, e.tz), 0xff7a1a, T_R(e), T_R(e) + 0.2, 1.0); music.horn(); }
+  if (e.type === 'nid') { if (b % 8 === 0 && e.state === 'under') { if (Math.random() < 0.4) radio(pick(LINES.nid), 3); e.state = 'tele'; e.st = 0; e.tx = G.P.x; e.tz = G.P.z; fx.ring(new V3(e.tx, 0, e.tz), 0xff7a1a, T_R(e), T_R(e) + 0.2, 1.0); music.horn(); }
     if (b % 16 === 12 && G.enemies.length < G.cap) { spawn('cone', { x: e.x + 3, z: e.z }); spawn('parco', { x: e.x - 3, z: e.z }); } }
   if (e.type === 'mere') { if (b % 16 === 4 && G.enemies.length < G.cap) { spawn('cone', { x: e.x + 3, z: e.z }); spawn('cone', { x: e.x - 3, z: e.z }); } }
   if (e.type === 'tram') { const ph2 = e.hp < e.hpMax * 0.5;

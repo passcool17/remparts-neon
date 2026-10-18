@@ -11,8 +11,8 @@ const PRE = process.argv[2] || 'scene', NL = +(process.argv[3] || 3), PORT = +(p
   await p.screenshot({ path: `shots/${PRE}-titre.png` });
   for (let li = 0; li < NL; li++) {
     await p.evaluate(li => __game.startRun(['pelle', 'baton', 'onde', 'pelle'][li % 4], li), li); await p.waitForTimeout(4200);
-    await p.evaluate(() => { const G = __game.G, P = G.P; P.yaw = 0; P.pitch = -0.05; const ty = ['cone', 'bur', 'cons', 'plow', 'drone', 'cone', 'bur'];
-      ty.forEach((t, i) => { try { __game.spawn(t, { x: P.x - 4.5 + i * 1.5, z: P.z - 7 - (i % 2) * 2 }); } catch (e) {} }); });
+    await p.evaluate(() => { const G = __game.G, P = G.P; P.yaw = 0; P.pitch = -0.05; const ty = __game.G.li === 2 ? ['parco', 'pigeon', 'parco', 'pigeon', 'bur', 'pigeon', 'nid'] : ['cone', 'bur', 'cons', 'plow', 'drone', 'cone', 'bur'];
+      ty.forEach((t, i) => { try { if (t === 'nid') { __game.spawn(t, { x: P.x + 2, z: P.z - 12 }); return; } __game.spawn(t, { x: P.x - 4.5 + i * 1.5, z: P.z - 7 - (i % 2) * 2 }); } catch (e) {} }); });
     await p.waitForTimeout(1300); await p.evaluate(() => __game.input.fire = true); await p.waitForTimeout(900);
     await p.screenshot({ path: `shots/${PRE}-combat-q${li + 1}.png` }); await p.evaluate(() => __game.input.fire = false);
   }

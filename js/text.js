@@ -5,6 +5,7 @@ export const LINES = {
   intro: [
     'Ce soir, dans le Vieux-Québec, les cônes orange ont pris vie. Comme chaque été, mais en pire. Monte sur les remparts pis défends la ville!',
     'On descend dans Saint-Roch! Le monde du quartier pensait que la déneigeuse-robot était une installation d\'art. Elle a eu une subvention.',
+    'Bienvenue dans Limoilou! Les ruelles sont belles, les escaliers en colimaçon sont glacés, pis les nids-de-poule ont formé un syndicat.',
     'Dernier arrêt : le Pont de glace. Le fleuve est gelé, le pont est fermé pour travaux, pis les travaux sont fermés pour travaux.',
   ],
   waves: [
@@ -14,6 +15,9 @@ export const LINES = {
     ['Les déneigeuses-bots sont programmées pour passer à 6 h du matin devant ta chambre. Là, il est minuit. Elles sont en avance.',
      'Les drones de tram sont en service! Le tram, lui, est pas fini, mais ses drones roulent déjà. Priorités.',
      'Voici LA DÉNEIGEUSE-MÈRE! Elle a enterré trois chars pis un abri d\'auto juste en se stationnant.'],
+    ['Les parcomètres enragés distribuent des contraventions à 30 km/h. Bouge, sinon c\'est l\'amende!',
+     'Une volée de pigeons néon! Ils ont mangé des restants de poutine fluo. On sait pas ce qui va sortir de là.',
+     'Le sol tremble... C\'est LE NID-DE-POULE ROYAL! Il dort sous l\'asphalte depuis 1987. Quand le cercle orange apparaît sous tes pieds, DASH!'],
     ['Les consultants ont facturé 400 piasses de l\'heure pour te dire que t\'es entouré. Ils ont pas tort.',
      'Météo : blizzard, moins 32 avec le facteur vent, pis 100 % de chances de drones. Attache ta tuque!',
      'Mesdames et messieurs : le TRAM-O-TRON 3000! Budget annoncé : 3 piasses. Budget réel : on va vous revenir là-dessus.'],
@@ -24,6 +28,11 @@ export const LINES = {
     'Ça, c\'était une vague. La prochaine va être pire. C\'est pas moi qui le dis, c\'est le rapport du consultant.',
     'Une Soupe aux pois si t\'es magané? Ma mère dit que ça guérit toute, même les zombies.',
     'Un auditeur nous écrit : « Ti-Guy, ta musique est trop forte. » Merci Réjean, on monte le son.',
+    'Message de la ville : les nids-de-poule seront réparés en 2047. Ou quand ils vont arrêter de mordre.',
+    'Un auditeur de Limoilou appelle : « Ti-Guy, y\'a un pigeon qui joue du DJ sur mon balcon. » On l\'engage!',
+    'Promo du Dépanneur Néon : achète une tuque, reçois une deuxième tuque. Pour ta deuxième tête.',
+    'Saviez-vous que? La trance à 138 BPM, c\'est le rythme officiel du déneigement nocturne.',
+    'Esquive au bon moment pis le temps ralentit. Comme dans la file du permis de conduire.',
     'Tire sur le beat, ça fait plus mal. C\'est scientifique. Bon, c\'est pas prouvé, mais c\'est scientifique.',
   ],
   path: {
@@ -36,6 +45,8 @@ export const LINES = {
   survieIntro: 'Mode Survie! Les vagues s\'arrêtent jamais, comme les travaux sur l\'autoroute. Tiens le plus longtemps possible!',
   survie: ['Vague suivante! Le ministère des Vagues a approuvé le budget.', 'Encore une? Ben oui. C\'est la Survie, pas un 5 à 7.', 'Les ennemis se multiplient. Comme les cônes en juillet.', 'T\'es encore là? Bravo! La ville te nomme employé du mois. Non payé.', 'Le kick est plus fort, les ennemis aussi. Coïncidence? Non.'],
   survieBoss: ['Un boss en Survie! Il a fait la file pendant cinq vagues pour te voir.', 'Boss en approche! Il paraît qu\'il a pris le tram pour venir. Il est donc en retard de cinq vagues.'],
+  nid: ['Le nid creuse! Regarde le sol!', 'Il remonte! DASH!', 'Il crache de l\'asphalte chaude! Ça colle!'],
+  parco: ['Ton temps est expiré!', 'Paiement refusé!'],
   dodge: ['Belle esquive! T\'es plus glissant qu\'un trottoir en février.', 'Esquive parfaite! Même les nids-de-poule t\'évitent.', 'Wô! Le consultant a facturé ce coup-là pour rien.'],
   low: 'Ton indicateur de santé est plus rouge qu\'un cône. Prends une soupe!',
   dead: 'Ouch. T\'es enseveli sous la paperasse. On recommence la vague, ça coûte rien. Contrairement au reste.',

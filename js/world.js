@@ -11,10 +11,14 @@ export const LEVELS = [
     pal: { a: 0xff8a1f, b: 0xa64dff, sky1: 0x07020f, sky2: 0x3b1240, fog: 0x1d0a22, sun: 0xff9a3c },
     arena: { type: 'rect', w: 17, h: 58 }, hpMul: 1.3, cashMul: 1.15,
     waves: [ { n: 32, mix: { cone: 4, bur: 3, cons: 3, plow: 2 } }, { n: 38, mix: { bur: 3, cons: 3, plow: 3, drone: 4 } }, { n: 28, mix: { cone: 4, cons: 3, plow: 2, drone: 3 }, boss: 'mere' } ] },
+  { id: 'lm', name: 'Limoilou néon', sub: 'Les ruelles, les escaliers, les nids-de-poule', key: 5, weather: 'snow', wet: 0.85,
+    pal: { a: 0x9dff3a, b: 0xff3fd2, sky1: 0x050012, sky2: 0x2a0d4a, fog: 0x160828, sun: 0xb6ff5a },
+    arena: { type: 'rect', w: 30, h: 34 }, hpMul: 1.5, cashMul: 1.2,
+    waves: [ { n: 34, mix: { cone: 3, bur: 3, parco: 4, pigeon: 3 } }, { n: 40, mix: { cons: 3, plow: 3, parco: 3, pigeon: 5, drone: 2 } }, { n: 30, mix: { cone: 4, parco: 3, pigeon: 3, bur: 2 }, boss: 'nid' } ] },
   { id: 'pt', name: 'Le Pont de glace', sub: 'Au-dessus du fleuve gelé', key: -2, weather: 'blizzard', wet: 0.35,
     pal: { a: 0x2bf0ff, b: 0x4f6bff, sky1: 0x01030f, sky2: 0x0b2b55, fog: 0x081a33, sun: 0x7fe9ff },
-    arena: { type: 'rect', w: 14, h: 72 }, hpMul: 1.7, cashMul: 1.3,
-    waves: [ { n: 38, mix: { cone: 3, bur: 3, cons: 4, plow: 3, drone: 5 } }, { n: 44, mix: { cone: 3, bur: 4, cons: 4, plow: 4, drone: 5 } }, { n: 32, mix: { cone: 3, cons: 4, plow: 3, drone: 5 }, boss: 'tram' } ] },
+    arena: { type: 'rect', w: 14, h: 72 }, hpMul: 1.85, cashMul: 1.35,
+    waves: [ { n: 38, mix: { cone: 3, bur: 3, cons: 4, plow: 3, drone: 5 } }, { n: 44, mix: { cone: 3, bur: 4, cons: 4, plow: 4, drone: 5, parco: 2, pigeon: 2 } }, { n: 32, mix: { cone: 3, cons: 4, plow: 3, drone: 5 }, boss: 'tram' } ] },
 ];
 
 // Lignes néon regroupées par couleur (une seule géométrie par couleur)
@@ -216,6 +220,44 @@ export function buildLevel(scene, L, quality) {
     // voitures de rue (obstacles)
     for (const [x, z] of [[-4, -12], [5, 8], [-5, 20], [4, -22]]) { box(2, 1.2, 4.2, x, 0.6, z, P.b); box(1.8, 0.7, 2.2, x, 1.55, z - 0.2, P.a); obstacles.push({ x, z: z - 1.3, r: 1.2 }, { x, z: z + 1.3, r: 1.2 }); }
     spawns.push({ x: 0, z: -H / 2 - 3 }, { x: 0, z: H / 2 + 3 }, { x: -W / 2 + 1, z: -H / 2 + 1 }, { x: W / 2 - 1, z: H / 2 - 1 }, { x: -W / 2 - 2, z: 0 }, { x: W / 2 + 2, z: 0 });
+  } else if (L.id === 'lm') {
+    const W = L.arena.w, H = L.arena.h; bounds = { type: 'rect', w: W, h: H };
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), groundMat); ground.rotation.x = -Math.PI / 2; root.add(ground); gu.scale.value = 1.3;
+    const V = (x, y, z) => new THREE.Vector3(x, y, z);
+    // triplex avec escaliers extérieurs en colimaçon et balcons (signature du quartier, version néon)
+    const triplex = (x, z, face, col) => { const w = 7, h = 9 + Math.random() * 2, d = 6; const m = building(w, h, d, x, z, col);
+      const fz = z + face * (d / 2 + 0.05);
+      for (let f = 1; f <= 2; f++) { const y = f * 3; box(w * 0.9, 0.15, 1.3, x, y, fz + face * 0.65, P.a); lines.seg(P.b, [V(x - w * 0.45, y + 1, fz + face * 1.3), V(x + w * 0.45, y + 1, fz + face * 1.3)]);
+        for (let k = -3; k <= 3; k++) lines.seg(P.b, [V(x + k * w * 0.15, y, fz + face * 1.3), V(x + k * w * 0.15, y + 1, fz + face * 1.3)]); }
+      const sx = x + w * 0.32, sz = fz + face * 2.0, n = 16; let prev = null;
+      for (let i = 0; i <= n; i++) { const a = i / n * Math.PI * 3, y = i / n * 6, q = V(sx + Math.cos(a) * 0.9, y, sz + Math.sin(a) * 0.9); if (prev) lines.seg(0xffd23a, [prev, q]); prev = q; }
+      lines.seg(0xffd23a, [V(sx, 0, sz), V(sx, 6.2, sz)]); obstacles.push({ x: sx, z: sz, r: 1.0 });
+      return m; };
+    for (const face of [-1, 1]) for (let x = -W / 2 + 1; x < W / 2; x += 8.4) { if (Math.abs(x + 0.3) < 3) continue; triplex(x + 3, -face * (H / 2 + 3.4), face, Math.random() < 0.5 ? P.a : P.b); }
+    for (const side of [-1, 1]) for (let z = -H / 2 + 2; z < H / 2; z += 8) { if (Math.abs(z) < 3) continue; building(6, 8 + Math.random() * 6, 7.4, side * (W / 2 + 3.5), z + 2, Math.random() < 0.5 ? P.a : P.b); }
+    // cordes à linge lumineuses entre les balcons (ampoules)
+    const bulbs = [0xffd23a, 0xff3fd2, 0x2bf0ff, 0x9dff3a];
+    for (let i = 0; i < 4; i++) { const x0 = -W / 2 + 4 + i * (W - 8) / 3, y0 = 8 + (i % 2) * 0.6; let pv = null;
+      for (let k = 0; k <= 12; k++) { const t = k / 12, z = -H / 2 - 1 + t * (H + 2), y = y0 - Math.sin(t * Math.PI) * 1.0, q = V(x0 + Math.sin(t * 9 + i) * 0.4, y, z); if (pv) lines.seg(0x8a6aa8, [pv, q]); pv = q;
+        if (k % 2 === 1) { const bm = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 4), new THREE.MeshBasicMaterial({ color: bulbs[(k + i) % 4] })); bm.position.copy(q); bm.position.y -= 0.15; root.add(bm); if (Math.random() < 0.25) flick.push(bm.material); } } }
+    // nids-de-poule décoratifs (cratères néon)
+    for (const [x, z, r] of [[-8, -6, 1.1], [7, 9, 1.4], [10, -11, 0.9], [-11, 10, 1.2], [2, -2, 0.8]]) { const c = new THREE.Mesh(new THREE.CircleGeometry(r, 14), new THREE.MeshBasicMaterial({ color: 0x050008 })); c.rotation.x = -Math.PI / 2; c.position.set(x, 0.02, z); root.add(c);
+      let pv = null; for (let k = 0; k <= 14; k++) { const a = k / 14 * Math.PI * 2, q = V(x + Math.cos(a) * r * (0.9 + 0.2 * Math.sin(a * 3)), 0.04, z + Math.sin(a) * r); if (pv) lines.seg(0xff7a1a, [pv, q]); pv = q; } }
+    // petit parc central : arbre néon + bancs
+    box(0.4, 3, 0.4, -4, 1.5, 4, 0x9dff3a); obstacles.push({ x: -4, z: 4, r: 0.6 });
+    for (let k = 0; k < 3; k++) { const g = new THREE.IcosahedronGeometry(1.4 - k * 0.3, 0); const m = new THREE.Mesh(g, dark); m.position.set(-4, 3.4 + k * 0.9, 4); m.updateMatrix(); root.add(m); lines.add(g, k % 2 ? P.b : P.a, m.matrix); }
+    box(2.4, 0.5, 0.8, 5, 0.25, 4, P.b); box(2.4, 0.5, 0.8, -9, 0.25, -2, P.b); obstacles.push({ x: 5, z: 4, r: 1.0 }, { x: -9, z: -2, r: 1.0 });
+    // enseignes du coin
+    const signs = [['DÉPANNEUR', '#9dff3a'], ['CHEZ GIGI', '#ff4fd8'], ['BUANDERIE', '#5ff6ff'], ['QUINCAILLERIE', '#ffb43a']];
+    signs.forEach(([t, c], i) => { const sg = new THREE.Mesh(new THREE.PlaneGeometry(5.2, 1.1), new THREE.MeshBasicMaterial({ map: signTex(t, c), side: THREE.DoubleSide, fog: true }));
+      const side = i % 2 ? 1 : -1; sg.position.set(side * (W / 2 + 0.45), 3.4, -8 + i * 6); sg.rotation.y = -side * Math.PI / 2; root.add(sg); addLight(side * (W / 2 - 0.4), -8 + i * 6, c); if (i === 1) flick.push(sg.material); });
+    for (const [x, z, c] of [[-12, -14, P.a], [12, -14, P.b], [-12, 14, P.b], [12, 14, P.a], [0, -10, P.a], [0, 12, P.b]]) lamp(x, z, c);
+    // clocher d'église au loin + autoroute surélevée en arrière-plan
+    building(9, 20, 9, 30, -48, P.b); roof(7, 16, 30, 20, -48, 0x3dffb0);
+    for (let x = -120; x <= 120; x += 12) { box(1.2, 10, 1.2, x, 5, 62, P.a); } box(250, 1, 6, 0, 10.5, 62, P.b);
+    for (let i = 0; i < 30; i++) { const a = Math.random() * Math.PI * 2, r = 45 + Math.random() * 40, w = 6 + Math.random() * 8, h = 6 + Math.random() * 16; building(w, h, w, Math.cos(a) * r, Math.sin(a) * r, Math.random() < 0.5 ? P.a : P.b, a); }
+    // ruelles = points d'apparition
+    spawns.push({ x: 0, z: -H / 2 - 3 }, { x: 0, z: H / 2 + 3 }, { x: -W / 2 - 3, z: 0 }, { x: W / 2 + 3, z: 0 }, { x: -W / 2 + 1, z: -H / 2 + 1 }, { x: W / 2 - 1, z: H / 2 - 1 });
   } else {
     const W = L.arena.w, H = L.arena.h; bounds = { type: 'rect', w: W, h: H };
     // tablier du pont
@@ -258,7 +300,7 @@ export function buildLevel(scene, L, quality) {
     update(t, pulse, cam, dt) { gu.t.value = t; gu.pulse.value = pulse; gu.cam.value.copy(cam); weather.update(dt, cam); motes.update(dt, cam); sky.position.copy(cam);
       for (const m of mists) { m.position.x = cam.x; m.position.z = cam.z; m.rotation.z += m.userData.sp * dt; }
       bt += dt; blinkers.forEach(b => b.color.setHex(Math.sin(bt * 3) > 0.6 ? 0xff2040 : 0x200006));
-      for (const f of flick) { if (Math.random() < dt * 0.6) f.userData.off = 0.05 + Math.random() * 0.25; if (f.userData.off > 0) { f.userData.off -= dt; f.color.setScalar(0.25); } else f.color.setScalar(1); } } };
+      for (const f of flick) { const b = f.userData.base || (f.userData.base = f.color.clone()); if (Math.random() < dt * 0.6) f.userData.off = 0.05 + Math.random() * 0.25; if (f.userData.off > 0) { f.userData.off -= dt; f.color.copy(b).multiplyScalar(0.25); } else f.color.copy(b); } } };
 }
 
 function dotTex() { const c = document.createElement('canvas'); c.width = c.height = 32; const x = c.getContext('2d'); const g = x.createRadialGradient(16, 16, 0, 16, 16, 16);
