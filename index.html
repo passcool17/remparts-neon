@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Remparts Néon</title>
+<meta name="theme-color" content="#12002a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon192.png">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js", "three/addons/": "./vendor/jsm/" } }</script>
+</head>
+<body>
+<div id="app"></div>
+<div id="vignette"></div><div id="hurt"></div>
+<div id="hud" class="hidden">
+  <div id="hpbox"><div class="lbl">SANTÉ</div><div id="hpbar"><div id="hpfill"></div><span id="hptxt">100</span></div><div id="dashes"></div></div>
+  <div id="cashbox"><span class="coin"></span><span id="cash">0</span><small>piasses néon</small></div>
+  <div id="wavebox"><div id="wavelbl">VAGUE 1/3</div><div id="seclbl">ÇA MONTE…</div></div>
+  <div id="bossbox" class="hidden"><div id="bossname">BOSS</div><div id="bossbar"><div id="bossfill"></div></div></div>
+  <div id="score">0</div>
+  <div id="cross"><div class="ch"></div><div id="beatL" class="bt"></div><div id="beatL2" class="bt"></div><div id="beatR" class="bt"></div><div id="beatR2" class="bt"></div><div id="beatC"></div></div>
+  <div id="streak"></div>
+  <div id="altbox"><div id="altico"></div><div id="altname">RONDELLE</div><div id="altbar"><div id="altfill"></div></div></div>
+  <div id="banner"></div>
+  <div id="toast"></div>
+</div>
+<div id="floats"></div>
+<div id="radio" class="hidden"><div class="rhead"><span class="eq"><i></i><i></i><i></i><i></i></span><span id="djname"></span></div><div id="rtext"></div></div>
+
+<section id="title" class="screen">
+  <div class="logo"><div class="l1">REMPARTS</div><div class="l2">NÉON</div><div class="sub">Trance, tuques et formulaires</div></div>
+  <div class="menu">
+    <button class="btn big" id="bPlay">JOUER</button>
+    <button class="btn" id="bHelp">COMMENT JOUER</button>
+    <button class="btn" id="bOpts">OPTIONS</button>
+  </div>
+  <div class="foot">Personnages fictifs. Toute ressemblance avec un chantier réel est une coïncidence.</div>
+</section>
+
+<section id="paths" class="screen hidden">
+  <h1>CHOISIS TON ARME</h1>
+  <div id="pathcards"></div>
+  <div id="lvlpick"></div>
+  <button class="btn" id="bBack1">◀ RETOUR</button>
+</section>
+
+<section id="help" class="screen hidden">
+  <h1>COMMENT JOUER</h1>
+  <div class="panel helptxt">
+    <p><b>But :</b> survis aux vagues. La musique les pilote : le <b>build-up</b> monte, le <b>drop</b> lâche la horde, le <b>breakdown</b> te laisse souffler.</p>
+    <p><b>Sur le beat :</b> frappe ou tire au moment où les barres se rejoignent au centre du viseur : dégâts bonus. Pas obligé, juste payant.</p>
+    <p><b>Piasses néon :</b> ramasse-les et dépense-les au Dépanneur Néon entre les vagues.</p>
+    <table><tr><th></th><th>Clavier / souris</th><th>Manette</th><th>Tactile</th></tr>
+      <tr><td>Bouger</td><td>WASD / ZQSD</td><td>Stick gauche</td><td>Pouce gauche</td></tr>
+      <tr><td>Viser</td><td>Souris</td><td>Stick droit</td><td>Glisser à droite</td></tr>
+      <tr><td>Attaque</td><td>Clic gauche</td><td>RT</td><td>Bouton FEU (ou tir auto)</td></tr>
+      <tr><td>Spécial</td><td>Clic droit / E</td><td>LT</td><td>SPÉCIAL</td></tr>
+      <tr><td>Sprint</td><td>Espace / Maj</td><td>A</td><td>SPRINT</td></tr>
+      <tr><td>Pause</td><td>Échap / P</td><td>Start</td><td>⏸</td></tr></table>
+  </div>
+  <button class="btn" id="bBack2">◀ RETOUR</button>
+</section>
+
+<section id="opts" class="screen hidden">
+  <h1>OPTIONS</h1>
+  <div class="panel opts">
+    <label>Volume <input type="range" id="oVol" min="0" max="1" step="0.05"></label>
+    <label>Sensibilité <input type="range" id="oSens" min="0.3" max="2.5" step="0.05"></label>
+    <label>Effets <select id="oQual"><option value="high">Élevés (bloom)</option><option value="low">Bas (téléphones)</option></select></label>
+    <label>Tir auto (tactile) <input type="checkbox" id="oAuto"></label>
+  </div>
+  <button class="btn" id="bBack3">◀ RETOUR</button>
+</section>
+
+<section id="lvlcard" class="screen hidden"><div class="lvnum" id="lvnum">QUARTIER 1</div><div class="lvname" id="lvname"></div><div class="lvsub" id="lvsub"></div></section>
+
+<section id="shop" class="screen hidden">
+  <div class="shophead"><h1>DÉPANNEUR NÉON <small>ouvert 24 h</small></h1><div class="shopcash"><span class="coin"></span><span id="scash">0</span></div></div>
+  <div id="cards"></div>
+  <div class="shopfoot"><div id="nextinfo"></div><button class="btn big" id="bNext">VAGUE SUIVANTE ▶</button></div>
+</section>
+
+<section id="pause" class="screen hidden">
+  <h1>PAUSE</h1>
+  <div class="menu"><button class="btn big" id="bResume">CONTINUER</button><button class="btn" id="bPOpts">OPTIONS</button><button class="btn" id="bQuit">MENU PRINCIPAL</button></div>
+</section>
+
+<section id="over" class="screen hidden">
+  <h1 class="red">K.-O. SUR LES REMPARTS!</h1>
+  <div class="panel" id="overstats"></div>
+  <div class="menu"><button class="btn big" id="bRetry">RECOMMENCER LA VAGUE</button><button class="btn" id="bQuit2">MENU PRINCIPAL</button></div>
+</section>
+
+<section id="win" class="screen hidden">
+  <h1>QUÉBEC EST SAUVÉE!</h1>
+  <div class="panel" id="winstats"></div>
+  <div class="menu"><button class="btn big" id="bAgain">REJOUER</button></div>
+</section>
+
+<div id="touch" class="hidden">
+  <div id="tl"><div id="knob0"><div id="knob"></div></div></div>
+  <div id="tr"></div>
+  <button id="tFire" class="tb">FEU</button><button id="tAlt" class="tb">SPÉCIAL</button><button id="tDash" class="tb">SPRINT</button><button id="tPause" class="tb">⏸</button>
+</div>
+<div id="rotate" class="hidden">Tourne ton téléphone à l'horizontale ↻</div>
+<div id="err" class="hidden"></div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
