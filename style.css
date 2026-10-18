@@ -101,15 +101,20 @@ h1.red { color: #ff4f6d !important; }
 #shop ~ #radio, body.shopping #radio { }
 /* tactile */
 #touch { position: fixed; inset: 0; pointer-events: none; }
-#tl { position: absolute; left: 0; bottom: 0; width: 45%; height: 70%; pointer-events: auto; }
-#tr { position: absolute; right: 0; top: 0; width: 55%; height: 100%; pointer-events: auto; }
+#tl { position: absolute; left: 0; bottom: 0; width: 42%; height: 78%; pointer-events: auto; }
+#tr { position: absolute; right: 0; top: 0; width: 58%; height: 100%; pointer-events: auto; }
 #knob0 { position: absolute; width: 130px; height: 130px; margin: -65px 0 0 -65px; border: 3px solid rgba(43,240,255,.6); border-radius: 50%; display: none; }
 #knob { position: absolute; left: 40px; top: 40px; width: 50px; height: 50px; border-radius: 50%; background: rgba(255,63,210,.6); border: 3px solid #fff; }
 .tb { position: absolute; pointer-events: auto; font-family: inherit; color: #fff; background: rgba(20,0,40,.55); border: 3px solid var(--pink); border-radius: 50%; font-size: 20px; text-shadow: inherit; }
-#tFire { right: 4vw; bottom: 16vh; width: 110px; height: 110px; font-size: 26px; }
-#tAlt { right: calc(4vw + 120px); bottom: 7vh; width: 84px; height: 84px; border-color: var(--cyan); font-size: 17px; }
-#tDash { right: calc(4vw + 18px); bottom: calc(16vh + 120px); width: 76px; height: 76px; border-color: var(--gold); font-size: 17px; }
-#tPause { right: 50%; top: 1vh; width: 52px; height: 52px; transform: translateX(50%); top: auto; bottom: 1vh; }
+#tFire { right: 3vw; bottom: 13vh; width: 140px; height: 140px; font-size: 30px; border-width: 4px; }
+#tAlt { right: calc(3vw + 150px); bottom: 4vh; width: 104px; height: 104px; border-color: var(--cyan); font-size: 18px; }
+#tDash { right: calc(3vw + 160px); bottom: calc(4vh + 120px); width: 100px; height: 100px; border-color: var(--gold); font-size: 18px; }
+#tAlt, #tDash { background: conic-gradient(rgba(255,255,255,.22) calc(var(--cd, 1) * 360deg), rgba(20,0,40,.6) 0); }
+#tAlt.ready { box-shadow: 0 0 16px var(--cyan); } #tDash.ready { box-shadow: 0 0 16px var(--gold); }
+#tPause { right: 50%; top: 1vh; width: 56px; height: 56px; transform: translateX(50%); top: auto; bottom: 1vh; }
+#khint { position: absolute; left: 8vw; bottom: 12vh; width: 120px; height: 120px; border: 3px dashed rgba(43,240,255,.28); border-radius: 50%; pointer-events: none; }
+#lookhint { position: absolute; right: 26vw; top: 46vh; font-size: 16px; color: rgba(255,255,255,.35); pointer-events: none; animation: fadehint 6s forwards; }
+@keyframes fadehint { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
 .tb.on { background: rgba(255,63,210,.6); }
 body.touch #altbox { bottom: auto; top: calc(2vh + var(--u) * 5); }
 body.touch #radio { bottom: auto; top: calc(2vh + var(--u) * 4.5); width: min(40vw, 420px); font-size: calc(var(--u) * .95); }

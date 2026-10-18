@@ -15,7 +15,7 @@ const Q = new URLSearchParams(location.search);
 const isTouch = Q.has('touch') || (matchMedia('(pointer: coarse)').matches && 'ontouchstart' in window);
 const SAVE_KEY = 'remparts-neon-v1';
 let saved = {}; try { saved = JSON.parse(localStorage.getItem(SAVE_KEY) || '{}'); } catch (e) {}
-const save = Object.assign({ vol: 0.8, sens: 1, qual: isTouch ? 'low' : 'high', auto: true, unlocked: 0, best: 0, shake: 1, nums: true, diff: 1, mode: 'histoire', scores: [] }, saved);
+const save = Object.assign({ vol: 0.8, sens: 1, qual: isTouch ? 'low' : 'high', auto: true, unlocked: 0, best: 0, shake: 1, nums: true, vib: true, diff: 1, mode: 'histoire', scores: [] }, saved);
 if (Q.get('q')) save.qual = Q.get('q');
 const persist = () => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} };
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -397,7 +397,7 @@ function perfectDodge() { const P = G.P; P.perfect = true; P.inv = 0.7; G.slowmo
 function hurt(amt) {
   const P = G.P; if (!P || G.state !== 'play' || P.dead || G.god) return;
   if (P.inv > 0) { if (G.t - (P.dashStart ?? -9) < 0.34 && !P.perfect) perfectDodge(); return; }
-  amt *= G.st.armor * DIFF[G.diff].dmg; P.lastHit = G.t;
+  amt *= G.st.armor * DIFF[G.diff].dmg; P.lastHit = G.t; if (isTouch && save.vib && navigator.vibrate) try { navigator.vibrate(Math.min(60, 15 + amt * 2)); } catch (_) {}
   P.hp -= amt; P.inv = 0.45; G.streak = 0; G.shake = Math.min(1.2, G.shake + 0.55); G.hurtT = 0.5; music.hurt(); G.dmgTaken += amt;
   if (P.hp <= 0) { P.hp = 0; die(); }
   else if (P.hp < P.hpMax * 0.3 && !G.lowSaid) { radio(LINES.low, 5); G.lowSaid = true; }
@@ -545,15 +545,20 @@ addEventListener('pointerdown', () => music.init(), { once: false });
 addEventListener('blur', () => { input.keys.clear(); input.fire = false; if (G.state === 'play' && !G.bot) pause(); });
 // tactile
 const tl = $('tl'), tr = $('tr'); let lt = null, rt = null;
-tl.addEventListener('touchstart', e => { const t = e.changedTouches[0]; lt = { id: t.identifier, x: t.clientX, y: t.clientY }; const k = $('knob0'); k.style.display = 'block'; k.style.left = t.clientX + 'px'; k.style.top = t.clientY + 'px'; e.preventDefault(); }, { passive: false });
-tr.addEventListener('touchstart', e => { const t = e.changedTouches[0]; rt = { id: t.identifier, x: t.clientX, y: t.clientY }; e.preventDefault(); }, { passive: false });
+tl.addEventListener('touchstart', e => { const t = e.changedTouches[0]; lt = { id: t.identifier, x: t.clientX, y: t.clientY }; const k = $('knob0'); k.style.display = 'block'; k.style.left = t.clientX + 'px'; k.style.top = t.clientY + 'px'; $('khint').style.opacity = 0; e.preventDefault(); }, { passive: false });
+tr.addEventListener('touchstart', e => { const t = e.changedTouches[0]; rt = { id: t.identifier, x: t.clientX, y: t.clientY, t: performance.now() }; e.preventDefault(); }, { passive: false });
+let onTarget = false; // friction de la visée quand le réticule est sur un ennemi
+function touchLook(t) { const now = performance.now(), dtm = Math.max(8, now - (rt.t || now)); let dx = t.clientX - rt.x, dy = t.clientY - rt.y;
+  const v = Math.hypot(dx, dy) / dtm; const acc = 0.75 + Math.min(1.1, v * 0.9); const fr = onTarget ? 0.6 : 1; const k = 0.0052 * save.sens * acc * fr;
+  G.P.yaw -= dx * k; G.P.pitch = clamp(G.P.pitch - dy * k * 0.8, -1.3, 1.3); rt.x = t.clientX; rt.y = t.clientY; rt.t = now; }
 addEventListener('touchmove', e => { for (const t of e.changedTouches) {
-  if (lt && t.identifier === lt.id) { let dx = (t.clientX - lt.x) / 55, dy = (t.clientY - lt.y) / 55; const l = Math.hypot(dx, dy); if (l > 1) { dx /= l; dy /= l; } input.tmx = dx; input.tmz = -dy; $('knob').style.transform = `translate(${dx * 40}px,${dy * 40}px)`; }
-  if (rt && t.identifier === rt.id && G.P) { G.P.yaw -= (t.clientX - rt.x) * 0.006 * save.sens; G.P.pitch = clamp(G.P.pitch - (t.clientY - rt.y) * 0.005 * save.sens, -1.3, 1.3); rt.x = t.clientX; rt.y = t.clientY; } } }, { passive: false });
-const endT = e => { for (const t of e.changedTouches) { if (lt && t.identifier === lt.id) { lt = null; input.tmx = input.tmz = 0; $('knob0').style.display = 'none'; $('knob').style.transform = ''; } if (rt && t.identifier === rt.id) rt = null; } };
+  if (lt && t.identifier === lt.id) { let dx = (t.clientX - lt.x) / 50, dy = (t.clientY - lt.y) / 50; let l = Math.hypot(dx, dy); if (l > 1) { dx /= l; dy /= l; l = 1; } if (l < 0.12) { dx = dy = 0; } else if (l < 0.9 && l > 0) { const g = (l - 0.12) / 0.78 / l; dx *= g * 1.1; dy *= g * 1.1; } input.tmx = dx; input.tmz = -dy; $('knob').style.transform = `translate(${clamp(dx, -1, 1) * 40}px,${clamp(dy, -1, 1) * 40}px)`; }
+  if (rt && t.identifier === rt.id && G.P) touchLook(t); } }, { passive: false });
+const endT = e => { for (const t of e.changedTouches) { if (lt && t.identifier === lt.id) { lt = null; input.tmx = input.tmz = 0; $('knob0').style.display = 'none'; $('khint').style.opacity = 1; $('knob').style.transform = ''; } if (rt && t.identifier === rt.id) rt = null; } };
 addEventListener('touchend', endT); addEventListener('touchcancel', endT);
-const tbtn = (id, down, up) => { const b = $(id); b.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); b.classList.add('on'); music.init(); down(); }, { passive: false }); b.addEventListener('touchend', e => { e.preventDefault(); b.classList.remove('on'); up && up(); }); };
-tbtn('tFire', () => input.tfire = true, () => input.tfire = false); tbtn('tAlt', () => input.altReq = true); tbtn('tDash', () => input.dashReq = true); tbtn('tPause', () => pause());
+const tbtn = (id, down, up, look) => { const b = $(id); b.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); b.classList.add('on'); music.init(); down(); const t = e.changedTouches[0]; if (look && !rt) rt = { id: t.identifier, x: t.clientX, y: t.clientY, t: performance.now() }; if (navigator.vibrate && save.vib) try { navigator.vibrate(8); } catch (_) {} }, { passive: false });
+  const up2 = e => { e.preventDefault(); b.classList.remove('on'); up && up(); }; b.addEventListener('touchend', up2); b.addEventListener('touchcancel', up2); };
+tbtn('tFire', () => input.tfire = true, () => input.tfire = false, true); tbtn('tAlt', () => input.altReq = true); tbtn('tDash', () => input.dashReq = true); tbtn('tPause', () => pause());
 // manette
 let padPrev = []; let navCd = 0;
 function pollPad(dt) {
@@ -616,6 +621,7 @@ $('oVol').oninput = e => { save.vol = +e.target.value; music.setVolume(save.vol)
 $('oSens').oninput = e => { save.sens = +e.target.value; persist(); };
 $('oQual').onchange = e => { save.qual = e.target.value; persist(); setupQuality(); };
 $('oAuto').onchange = e => { save.auto = e.target.checked; persist(); };
+$('oVib').checked = save.vib; $('oVib').onchange = e => { save.vib = e.target.checked; persist(); };
 $('oShake').value = String(save.shake); $('oShake').onchange = e => { save.shake = +e.target.value; persist(); };
 $('oNums').checked = save.nums; $('oNums').onchange = e => { save.nums = e.target.checked; persist(); };
 
@@ -640,9 +646,10 @@ function updPlayer(dt) {
   bounds(P, 0.5); obst(P, 0.45); P.inv -= dt; P.bob += Math.hypot(P.vx, P.vz) * dt;
   // aide à la visée (tactile / manette / bot)
   const assist = isTouch || input.usingPad; let target = null;
-  if (assist || (isTouch && save.auto)) { const o = eyePos(), d = aimDir(); let bestA = isTouch ? 0.16 : 0.1;
+  if (assist || (isTouch && save.auto)) { const o = eyePos(), d = aimDir(); let bestA = isTouch ? 0.24 : 0.1;
     for (const e of G.enemies) { if (e.dead || e.born < 0.5) continue; const c = eCenter(e).sub(o); const dist = c.length(); if (dist > 40) continue; const a = c.normalize().angleTo(d); if (a < bestA) { bestA = a; target = { e, c, dist }; } }
-    if (target && assist) { const ty = Math.atan2(-target.c.x, -target.c.z), tp = Math.asin(clamp(target.c.y, -1, 1)); let dy = Math.atan2(Math.sin(ty - P.yaw), Math.cos(ty - P.yaw)); const f = Math.min(1, dt * 4); P.yaw += dy * f; P.pitch += (tp - P.pitch) * f; } }
+    if (target && assist) { const ty = Math.atan2(-target.c.x, -target.c.z), tp = Math.asin(clamp(target.c.y, -1, 1)); let dy = Math.atan2(Math.sin(ty - P.yaw), Math.cos(ty - P.yaw)); const firing = input.tfire || input.fire || input.padFire || input.botFire; const f = Math.min(1, dt * (isTouch ? (firing ? 7 : 3.5) : 4)); P.yaw += dy * f; P.pitch += (tp - P.pitch) * f; } }
+  onTarget = !!(target && target.c && isTouch);
   // attaques
   P.fireCd -= dt; P.altCd -= dt;
   let wantFire = input.fire || input.tfire || input.padFire || input.botFire;
@@ -678,6 +685,8 @@ function updHud(bp, sec) {
   const hpf = clamp(P.hp / P.hpMax, 0, 1); const w = Math.round(hpf * 100) + '%'; if (hudCache.hpw !== w) { hudCache.hpw = w; $('hpfill').style.width = w; }
   setText('hptxt', Math.ceil(P.hp) + ' / ' + P.hpMax); setText('cash', G.cash + ''); setText('score', 'POINTAGE ' + G.score);
   setText('wavelbl', G.mode === 'survie' ? 'SURVIE · ' + LEVELS[G.li].name.toUpperCase() + ' · VAGUE ' + (G.wi + 1) : LEVELS[G.li].name.toUpperCase() + ' · VAGUE ' + (G.wi + 1) + '/' + LEVELS[G.li].waves.length);
+  if (isTouch) { const ac = st.altCd ? clamp(1 - P.altCd / st.altCd, 0, 1) : 1, dc = P.dashN > 0 ? 1 : clamp(P.dashRe / st.dashCd, 0, 1);
+    const ak = (ac * 20 | 0) + ':' + (dc * 20 | 0); if (hudCache.tcd !== ak) { hudCache.tcd = ak; $('tAlt').style.setProperty('--cd', ac); $('tAlt').classList.toggle('ready', ac >= 1); $('tDash').style.setProperty('--cd', dc); $('tDash').classList.toggle('ready', dc >= 1); } }
   const dk = P.dashN + '/' + st.dashMax; if (hudCache.dash !== dk) { hudCache.dash = dk; $('dashes').innerHTML = Array.from({ length: st.dashMax }, (_, i) => `<i class="${i < P.dashN ? '' : 'off'}"></i>`).join(''); }
   const af = clamp(1 - P.altCd / st.altCd, 0, 1); $('altfill').style.width = Math.round(af * 100) + '%'; $('altbox').classList.toggle('ready', af >= 1); setText('altname', st.altName + (isTouch ? '' : ' · CLIC DROIT'));
   setText('streak', G.streak >= 2 ? 'SÉRIE BEAT ×' + G.streak : '');

@@ -74,6 +74,7 @@
     <label>Effets <select id="oQual"><option value="high">Élevés (bloom)</option><option value="low">Bas (téléphones)</option></select></label>
     <label>Secousses de l'écran <select id="oShake"><option value="1">Fortes</option><option value="0.5">Douces</option><option value="0">Aucune</option></select></label>
     <label>Chiffres de dégâts <input type="checkbox" id="oNums"></label>
+    <label>Vibrations (tactile) <input type="checkbox" id="oVib"></label>
     <label>Tir auto (tactile) <input type="checkbox" id="oAuto"></label>
   </div>
   <button class="btn" id="bBack3">◀ RETOUR</button>
@@ -111,9 +112,9 @@
 </section>
 
 <div id="touch" class="hidden">
-  <div id="tl"><div id="knob0"><div id="knob"></div></div></div>
+  <div id="tl"><div id="khint"></div><div id="knob0"><div id="knob"></div></div></div>
   <div id="tr"></div>
-  <button id="tFire" class="tb">FEU</button><button id="tAlt" class="tb">SPÉCIAL</button><button id="tDash" class="tb">ESQUIVE</button><button id="tPause" class="tb">⏸</button>
+  <div id="lookhint">GLISSE ICI POUR VISER</div><button id="tFire" class="tb">FEU</button><button id="tAlt" class="tb">SPÉCIAL</button><button id="tDash" class="tb">ESQUIVE</button><button id="tPause" class="tb">⏸</button>
 </div>
 <div id="rotate" class="hidden">Tourne ton téléphone à l'horizontale ↻</div>
 <div id="err" class="hidden"></div>
