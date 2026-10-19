@@ -10,6 +10,7 @@ Les cônes orange ont pris vie, les bureaucrates zombies remplissent des formula
 - **3 quartiers** : Vieux-Québec néon, Saint-Roch néon, Le Pont de glace, chacun avec 3 vagues et un boss.
 - **Dépanneur Néon** : dépense tes piasses néon entre les vagues.
 - Clavier/souris, manette et écran tactile.
+- **Plein écran** : bouton ⛶ en haut à droite (aussi dans le menu titre et le menu pause) ou touche **F**. Sur iPhone, Safari ne permet pas le vrai plein écran d'une page : le jeu passe en « pseudo plein écran » et, pour cacher la barre de Safari, il faut l'ajouter à l'écran d'accueil (Partager ▸ Sur l'écran d'accueil), où il se lance en plein écran.
 
 Tous les personnages sont fictifs.
 

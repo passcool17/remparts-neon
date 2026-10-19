@@ -9,6 +9,7 @@ import { LEVELS, buildLevel } from './world.js';
 import { TYPES, makeEnemy, animate } from './enemies.js';
 import { FX } from './fx.js';
 import { LINES, DJ, PATHS } from './text.js';
+import { initFullscreen, isFullscreen, toggleFullscreen } from './fullscreen.js';
 
 const $ = id => document.getElementById(id);
 const Q = new URLSearchParams(location.search);
@@ -48,6 +49,9 @@ function setupQuality() {
 function onResize() { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); composer && composer.setSize(innerWidth, innerHeight); fx && fx.setScale(innerHeight * renderer.getPixelRatio());
   $('rotate').classList.toggle('hidden', !(isTouch && innerHeight > innerWidth)); }
 addEventListener('resize', onResize);
+// plein écran / rotation : certains navigateurs (iOS) donnent la nouvelle taille en retard
+const reResize = () => { onResize(); setTimeout(onResize, 120); setTimeout(onResize, 400); };
+addEventListener('orientationchange', reResize); window.visualViewport && visualViewport.addEventListener('resize', onResize);
 
 const music = new Music(); music.setVolume(save.vol); music.setMusicVolume(save.mvol); music.setSfxVolume(save.svol);
 let fx = new FX(scene, save.qual);
@@ -759,8 +763,9 @@ function frame() {
 }
 
 // ---------- Point d'entrée de test ----------
-const API = { G, input, DIFF, waveDef, music, LEVELS, TYPES, UPG, startRun, buy, nextFromShop, retryWave, startWave, spawn, toTitle, costOf, stats: () => G.st, camera, fx, get frameAvg() { return frameAvg; } };
+const API = { isFullscreen, toggleFullscreen, G, input, DIFF, waveDef, music, LEVELS, TYPES, UPG, startRun, buy, nextFromShop, retryWave, startWave, spawn, toTitle, costOf, stats: () => G.st, camera, fx, get frameAvg() { return frameAvg; } };
 window.__game = API;
 if (Q.has('bot')) G.bot = true;
+initFullscreen({ onChange: reResize });
 loadLevel(0); show('title'); radio(LINES.title, 99); $('radio').classList.add('hidden');
 requestAnimationFrame(frame);
