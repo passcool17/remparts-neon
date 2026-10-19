@@ -1,3 +1,5 @@
 node_modules/
 shots/try*
 shots/smoke*
+audio-demo/wav/
+audio-demo/before-src/
