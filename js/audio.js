@@ -115,7 +115,7 @@ export class Music {
     { const car = c.createOscillator(), mod = c.createOscillator(), mg = c.createGain(), g = c.createGain(), p = c.createStereoPanner(); car.type = 'sine'; mod.type = 'sine'; mg.gain.value = 0; g.gain.value = 0;
       mod.connect(mg); mg.connect(car.frequency); car.connect(g); g.connect(p); p.connect(this.duck); g.connect(this.dly); g.connect(this.revIn); car.start(); mod.start(); p.pan.value = 0.2; this.bell = { car, mod, mg, g, p }; }
     // basse : scie + sous-basse sinus, saturation dosable (boss)
-    this.bass = mkVoice(['sawtooth', 'sine', 'square'], [0, -1200, 5], null, null, 400, 6);
+    this.bass = mkVoice(['sawtooth', 'sine', 'sawtooth'], [0, -1200, 9], [0, 0, 0], null, 400, 5);
     this.bassDrive = c.createGain(); this.bassDrive.gain.value = 1.2; const sh = c.createWaveShaper(); const bc = new Float32Array(1024);
     for (let i = 0; i < 1024; i++) { const x = i / 511.5 - 1; bc[i] = Math.tanh(2.2 * x) / Math.tanh(2.2); } sh.curve = bc; const bOut = c.createGain(); bOut.gain.value = 0.75;
     this.bass.g.connect(this.bassDrive); this.bassDrive.connect(sh); sh.connect(bOut); bOut.connect(this.duck);
@@ -233,7 +233,8 @@ export class Music {
     if (D === 'funk' && drop && [3, 6, 11, 14].includes(st)) this.cow(t, 0.05 + 0.03 * I);
     if (D === 'ice' && (drop || brk) && st % 4 === 2) this.tick(t, 0.04);
     if (title && st % 2 === 0) this.hat(t, 0.03, 0.03);
-    if ((shop || chill) && st % 2 === 1) this.shaker(t + sw, chill ? 0.012 : 0.022);
+    if ((shop || chill) && st % 2 === 1) this.shaker(t + sw, chill ? 0.014 : 0.034);
+    if (shop && st % 4 === 2) this.hat(t, 0.03, 0.05);
     if (drop && st === 0 && (bar === 0 || bar === 8 || (D === 'boss' && bar % 4 === 0))) this.crash(t);
     if (this.trans && st === 0) { this.trans = false; if (!drop) this.down(t); }
     // ---------- Basse ----------
@@ -245,7 +246,7 @@ export class Music {
       if (semi >= 0 && !(kick && !calm && semi === 0 && D !== 'boss' && D !== 'funk' && D !== 'ice')) {
         const n = root + 12 + semi, dur = calm ? STEP * (title ? 7 : 3.5) : brk ? SPB * 2 : STEP * (D === 'ice' ? 1.7 : 0.9);
         v.oscs.forEach(o => (TH.glide && !calm) ? o.frequency.setTargetAtTime(mtof(n), t, TH.glide) : o.frequency.setValueAtTime(mtof(n), t));
-        const lv = (drop ? 0.2 : title ? 0.09 : calm ? 0.1 : 0.14) * (D === 'boss' ? 0.8 : 1);
+        const lv = (drop ? 0.16 : title ? 0.09 : calm ? 0.1 : 0.14) * (D === 'boss' ? 0.8 : 1);
         v.g.gain.cancelScheduledValues(t); v.g.gain.setValueAtTime(0.0001, t); v.g.gain.linearRampToValueAtTime(lv, t + 0.006); v.g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
         const cut = (drop ? 700 + 900 * I : calm ? 380 : 500) * (D === 'boss' ? 1.6 : 1);
         v.f.frequency.cancelScheduledValues(t); v.f.frequency.setValueAtTime(cut * 2.2, t); v.f.frequency.exponentialRampToValueAtTime(Math.max(120, cut * 0.35), t + dur * 0.9);
@@ -285,7 +286,7 @@ export class Music {
         const n = 69 + k + ext(cont[ri]) + (TH.oct || 0) - (title ? 12 : 0);
         const dur = rhy[ri][1] * STEP;
         if (drop || title) {
-          const v = this.lead, lv = (name === 'boss' ? 0.05 : 0.045) * (title ? 0.75 : 1) * (0.85 + 0.25 * I);
+          const v = this.lead, lv = (name === 'boss' ? 0.06 : 0.056) * (title ? 0.75 : 1) * (0.85 + 0.25 * I);
           v.oscs.forEach(o => TH.glide ? o.frequency.setTargetAtTime(mtof(n), t, TH.glide) : o.frequency.setValueAtTime(mtof(n), t));
           v.g.gain.cancelScheduledValues(t); v.g.gain.setValueAtTime(v.g.gain.value > 0.001 && TH.glide ? lv * 0.6 : 0.0001, t); v.g.gain.linearRampToValueAtTime(lv, t + 0.012);
           v.g.gain.setTargetAtTime(lv * 0.6, t + 0.05, dur * 0.5); v.g.gain.setTargetAtTime(0.0001, t + dur * 0.92, 0.05);
