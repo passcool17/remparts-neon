@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Remparts Néon</title>
 <meta name="theme-color" content="#12002a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Remparts Néon">
+<link rel="apple-touch-icon" href="assets/icon192.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="assets/icon192.png">
 <link rel="stylesheet" href="style.css">
@@ -36,6 +41,7 @@
     <button class="btn" id="bRecs">RECORDS SURVIE</button>
     <button class="btn" id="bHelp">COMMENT JOUER</button>
     <button class="btn" id="bOpts">OPTIONS</button>
+    <button class="btn fsbtn" id="bFull" data-fs><span class="fsico"></span><span class="fstxt">PLEIN ÉCRAN</span></button>
   </div>
   <div class="foot">Personnages fictifs. Toute ressemblance avec un chantier réel est une coïncidence.</div>
 </section>
@@ -61,7 +67,8 @@
       <tr><td>Attaque</td><td>Clic gauche</td><td>RT</td><td>Bouton FEU (ou tir auto)</td></tr>
       <tr><td>Spécial</td><td>Clic droit / E</td><td>LT</td><td>SPÉCIAL</td></tr>
       <tr><td>Esquive</td><td>Espace / Maj</td><td>A</td><td>ESQUIVE</td></tr>
-      <tr><td>Pause</td><td>Échap / P</td><td>Start</td><td>⏸</td></tr></table>
+      <tr><td>Pause</td><td>Échap / P</td><td>Start</td><td>⏸</td></tr>
+      <tr><td>Plein écran</td><td>F</td><td>–</td><td>Bouton ⛶ (coin)</td></tr></table>
   </div>
   <button class="btn" id="bBack2">◀ RETOUR</button>
 </section>
@@ -98,7 +105,7 @@
 
 <section id="pause" class="screen hidden">
   <h1>PAUSE</h1>
-  <div class="menu"><button class="btn big" id="bResume">CONTINUER</button><button class="btn" id="bPOpts">OPTIONS</button><button class="btn" id="bQuit">MENU PRINCIPAL</button></div>
+  <div class="menu"><button class="btn big" id="bResume">CONTINUER</button><button class="btn" id="bPOpts">OPTIONS</button><button class="btn fsbtn" id="bPFull" data-fs><span class="fsico"></span><span class="fstxt">PLEIN ÉCRAN</span></button><button class="btn" id="bQuit">MENU PRINCIPAL</button></div>
 </section>
 
 <section id="over" class="screen hidden">
@@ -118,6 +125,8 @@
   <div id="tr"></div>
   <div id="lookhint">GLISSE ICI POUR VISER</div><button id="tFire" class="tb">FEU</button><button id="tAlt" class="tb">SPÉCIAL</button><button id="tDash" class="tb">ESQUIVE</button><button id="tPause" class="tb">⏸</button>
 </div>
+<button id="fsCorner" class="fscorner" data-fs title="Plein écran (F)" aria-label="Plein écran (F)"><span class="fsico"></span></button>
+<div id="fshint"></div>
 <div id="rotate" class="hidden">Tourne ton téléphone à l'horizontale ↻</div>
 <div id="err" class="hidden"></div>
 <script type="module" src="js/main.js"></script>
