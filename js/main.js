@@ -15,7 +15,7 @@ const Q = new URLSearchParams(location.search);
 const isTouch = Q.has('touch') || (matchMedia('(pointer: coarse)').matches && 'ontouchstart' in window);
 const SAVE_KEY = 'remparts-neon-v1';
 let saved = {}; try { saved = JSON.parse(localStorage.getItem(SAVE_KEY) || '{}'); } catch (e) {}
-const save = Object.assign({ vol: 0.8, sens: 1, qual: isTouch ? 'low' : 'high', auto: true, unlocked: 0, best: 0, shake: 1, nums: true, vib: true, diff: 1, mode: 'histoire', scores: [] }, saved);
+const save = Object.assign({ vol: 0.8, mvol: 1, svol: 1, sens: 1, qual: isTouch ? 'low' : 'high', auto: true, unlocked: 0, best: 0, shake: 1, nums: true, vib: true, diff: 1, mode: 'histoire', scores: [] }, saved);
 if (Q.get('q')) save.qual = Q.get('q');
 const persist = () => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} };
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -49,7 +49,7 @@ function onResize() { camera.aspect = innerWidth / innerHeight; camera.updatePro
   $('rotate').classList.toggle('hidden', !(isTouch && innerHeight > innerWidth)); }
 addEventListener('resize', onResize);
 
-const music = new Music(); music.setVolume(save.vol);
+const music = new Music(); music.setVolume(save.vol); music.setMusicVolume(save.mvol); music.setSfxVolume(save.svol);
 let fx = new FX(scene, save.qual);
 setupQuality(); onResize();
 
@@ -431,7 +431,7 @@ function startRun(path, li = 0, opt = {}) {
 }
 function clearField() { for (const e of G.enemies) removeEnemy(e); G.enemies = []; for (const p of G.projs) if (!p.dead) freeProj(p); G.projs = []; G.shocks = []; fx.clear(); G.boss = null; $('bossbox').classList.add('hidden'); }
 function startLevel(li, startWi = 0) {
-  G.li = li; G.wi = startWi; clearField(); loadLevel(li); computeStats(); newPlayer(); G.state = 'play'; G.wave = null; G.timers = []; music.setKey(LEVELS[li].key); music.toChill();
+  G.li = li; G.wi = startWi; clearField(); loadLevel(li); computeStats(); newPlayer(); G.state = 'play'; G.wave = null; G.timers = []; music.setKey(LEVELS[li].key); music.setLevel(li); music.toChill();
   const L = LEVELS[li]; show('lvlcard'); $('lvnum').textContent = G.mode === 'survie' ? 'SURVIE · ' + DIFF[G.diff].name.toUpperCase() : 'QUARTIER ' + (li + 1) + ' / ' + LEVELS.length + ' · ' + DIFF[G.diff].name.toUpperCase(); $('lvname').textContent = L.name.toUpperCase(); $('lvsub').textContent = L.sub;
   setHud(true); radio(G.mode === 'survie' && startWi === 0 ? (LINES.survieIntro || LINES.intro[0]) : LINES.intro[li], 6); G.cap = (save.qual === 'low' ? 12 : 16) + (G.mode === 'survie' ? Math.min(9, Math.floor(startWi / 3)) : li * 3);
   later(3.4, () => { show(null); startWave(startWi); });
@@ -484,7 +484,7 @@ function checkWave() {
   }
 }
 function openShop(next) {
-  G.state = 'shop'; G.next = next; unlockPointer(); show('shop'); setHud(false); renderShop();
+  G.state = 'shop'; G.next = next; unlockPointer(); music.toShop(); show('shop'); setHud(false); renderShop();
   radio(Math.random() < 0.35 ? LINES.path[G.path] : pick(LINES.shop), 99);
   $('bNext').textContent = next.type === 'wave' ? 'VAGUE ' + (next.wi + 1) + ' ▶' : next.type === 'survlevel' ? 'VAGUE ' + (next.wi + 1) + ' · NOUVEAU QUARTIER ▶' : 'QUARTIER SUIVANT ▶';
   const L = LEVELS[next.type === 'wave' ? G.li : next.li]; const keepLi = G.li; if (next.type !== 'wave') G.li = next.li; const def = next.type === 'level' ? waveDef(0) : waveDef(next.wi); G.li = keepLi;
@@ -523,9 +523,9 @@ function retryWave() { const s = G.snap; G.cash = s.cash; G.up = { ...s.up }; G.
 function win() { G.state = 'win'; unlockPointer(); setHud(false); music.toTitle(); music.win(); show('win'); radio(LINES.win, 99);
   const secs = Math.round((performance.now() - G.t0) / 1000); save.best = Math.max(save.best, G.score); save.unlocked = LEVELS.length - 1; persist();
   $('winstats').innerHTML = `Arme : ${PATHS[G.path].name}<br>Pointage : <b>${G.score}</b> (record : ${save.best})<br>Éliminations : ${G.kills} · Attaques sur le beat : ${G.beatHits}<br>Meilleure série beat : ×${G.bestStreak} · K.-O. : ${G.deaths} · Temps : ${Math.floor(secs / 60)} min ${secs % 60} s`; }
-function toTitle() { G.state = 'title'; clearField(); setHud(false); $('radio').classList.add('hidden'); G.radio = null; music.toTitle(); loadLevel(0); G.P = null; show('title'); }
-function pause() { if (G.state !== 'play') return; G.state = 'pause'; show('pause'); unlockPointer(); }
-function resume() { if (G.state !== 'pause') return; G.state = 'play'; show(G.wave ? null : 'lvlcard'); if (G.wave) show(null); lockPointer(); }
+function toTitle() { G.state = 'title'; music.muffle(false); clearField(); setHud(false); $('radio').classList.add('hidden'); G.radio = null; music.toTitle(); loadLevel(0); G.P = null; show('title'); }
+function pause() { if (G.state !== 'play') return; G.state = 'pause'; music.muffle(true); show('pause'); unlockPointer(); }
+function resume() { if (G.state !== 'pause') return; G.state = 'play'; music.muffle(false); show(G.wave ? null : 'lvlcard'); if (G.wave) show(null); lockPointer(); }
 
 // ---------- Contrôles ----------
 function lockPointer() { if (isTouch || G.bot || !canvas.requestPointerLock) return; try { const r = canvas.requestPointerLock(); r && r.catch && r.catch(() => {}); } catch (e) {} }
@@ -542,6 +542,7 @@ addEventListener('keydown', e => { music.init(); input.keys.add(e.code);
   if (e.code === 'Enter' && G.state === 'shop' && document.activeElement === document.body) nextFromShop(); });
 addEventListener('keyup', e => input.keys.delete(e.code));
 addEventListener('pointerdown', () => music.init(), { once: false });
+addEventListener('touchend', () => music.init(), { passive: true }); // déblocage audio iOS (geste complet)
 addEventListener('blur', () => { input.keys.clear(); input.fire = false; if (G.state === 'play' && !G.bot) pause(); });
 // tactile
 const tl = $('tl'), tr = $('tr'); let lt = null, rt = null;
@@ -618,6 +619,9 @@ $('bNext').onclick = () => nextFromShop(); $('bResume').onclick = () => resume()
 $('bRetry').onclick = () => G.mode === 'survie' ? startRun(G.path, 0, { mode: 'survie' }) : retryWave(); $('bAgain').onclick = () => toTitle();
 $('oVol').value = save.vol; $('oSens').value = save.sens; $('oQual').value = save.qual; $('oAuto').checked = save.auto;
 $('oVol').oninput = e => { save.vol = +e.target.value; music.setVolume(save.vol); persist(); };
+$('oMVol').value = save.mvol; $('oSVol').value = save.svol;
+$('oMVol').oninput = e => { save.mvol = +e.target.value; music.setMusicVolume(save.mvol); persist(); };
+$('oSVol').oninput = e => { save.svol = +e.target.value; music.setSfxVolume(save.svol); persist(); music.coin(3); };
 $('oSens').oninput = e => { save.sens = +e.target.value; persist(); };
 $('oQual').onchange = e => { save.qual = e.target.value; persist(); setupQuality(); };
 $('oAuto').onchange = e => { save.auto = e.target.checked; persist(); };
@@ -708,7 +712,7 @@ function frame() {
   requestAnimationFrame(frame);
   let rdt = Math.min(clock.getDelta(), 0.1); frameAvg += (rdt * 1000 - frameAvg) * 0.05;
   let dt = Math.min(rdt, 0.05); if (G.hitstop > 0) { G.hitstop -= dt; dt *= 0.15; } if (G.slowmo > 0) { G.slowmo -= rdt; dt *= 0.35; }
-  G.t += dt; music.schedule(); pollPad(rdt);
+  G.t += dt; music.setIntensity(G.state === 'play' && G.wave && !G.wave.done ? Math.min(1, G.enemies.length / Math.max(6, (G.cap || 12) * 0.7)) + (G.boss ? 0.35 : 0) : 0); music.schedule(); pollPad(rdt);
   const ct = music.clock(); const bp = music.beatPos(ct); const sec = music.sectionAt(ct);
   const bi = Math.floor(bp); if (bi !== G.lastBeat) { if (G.lastBeat >= 0 && bi - G.lastBeat < 4) for (let b = G.lastBeat + 1; b <= bi; b++) onBeat(b, sec); else onBeat(bi, sec); G.lastBeat = bi; }
   if (sec.t !== G.secT) { G.secT = sec.t; onSection(sec); }
