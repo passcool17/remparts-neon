@@ -1,3 +1,4 @@
+import { allowImpact } from './weapon-feel.js';
 // Moteur audio : synthwave/trance procédurale (WebAudio) + horloge de beat + effets sonores.
 // La musique pilote les vagues : build-up -> drop (la horde) -> breakdown (répit). Contrat avec le jeu :
 // BPM fixe (138), SPB exporté, noms/longueurs de sections (SECTIONS), sectionAt(), beatPos(), clock().
@@ -41,6 +42,7 @@ const LEVEL_THEMES = ['vq', 'sr', 'lm', 'pt'];
 
 export class Music {
   constructor() {
+    this.impactGate = {};
     this.ctx = null; this.mode = 0; this.off = 0; this.lastC = 0;
     this.gridT0 = null; this.nextStep = 0; this.timeline = [{ t: -1, name: 'title', bar: 0, len: 4 }];
     this.plan = { name: 'title', bar: 0 }; this.req = null; this.waveMode = false; this.bossMode = false;
@@ -306,10 +308,10 @@ export class Music {
     o.frequency.exponentialRampToValueAtTime(38, t + 0.35); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(v * 0.95, t + 0.003); g.gain.setTargetAtTime(v * 0.5, t + 0.04, 0.06);
     g.gain.exponentialRampToValueAtTime(0.001, t + (soft ? 0.3 : 0.42)); o.connect(g); g.connect(this.musicBus); o.start(t); o.stop(t + 0.45);
     if (!soft) this.nz(t, 0.012, 'highpass', 3000, v * 0.22, this.musicBus); }
-  nz(t, dur, type, f, v, dest, q, pan) { const c = this.ctx, s = c.createBufferSource(); s.buffer = this.noise; const fl = c.createBiquadFilter(); fl.type = type; fl.frequency.value = f; if (q) fl.Q.value = q;
+  nz(t, dur, type, f, v, dest, q, pan, offset) { const c = this.ctx, s = c.createBufferSource(); s.buffer = this.noise; const fl = c.createBiquadFilter(); fl.type = type; fl.frequency.value = f; if (q) fl.Q.value = q;
     const g = c.createGain(); g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur); s.connect(fl); fl.connect(g);
     if (pan && c.createStereoPanner) { const p = c.createStereoPanner(); p.pan.value = pan; g.connect(p); p.connect(dest || this.duck); } else g.connect(dest || this.duck);
-    s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.02); return { fl, g }; }
+    s.start(t, offset ?? Math.random() * 0.5); s.stop(t + dur + 0.02); return { fl, g }; }
   hat(t, v, d, open) { this.nz(t, open ? d * 1.6 : d, 'highpass', open ? 7000 : 9000, v, this.musicBus, 0.7, open ? 0.25 : -0.3); }
   shaker(t, v) { this.nz(t, 0.05, 'bandpass', 6500, v, this.musicBus, 1.5, 0.45); }
   tick(t, v) { this.nz(t, 0.02, 'bandpass', 11000, v, this.musicBus, 6, -0.5); }
@@ -338,7 +340,7 @@ export class Music {
   tone(type, f0, f1, dur, v, delay = 0, dest) { if (!this.ok()) return; const c = this.ctx, t = c.currentTime + delay, o = c.createOscillator(), g = c.createGain(); o.type = type;
     o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(v, t + 0.004); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
     o.connect(g); g.connect(dest || this.sfx); o.start(t); o.stop(t + dur + 0.02); }
-  snz(dur, type, f, v, delay = 0) { if (!this.ok()) return; this.nz(this.ctx.currentTime + delay, dur, type, f, v, this.sfx, 1); }
+  snz(dur, type, f, v, delay = 0, offset) { if (!this.ok()) return; this.nz(this.ctx.currentTime + delay, dur, type, f, v, this.sfx, 1, undefined, offset); }
   scale(i) { const pent = [0, 3, 5, 7, 10]; return mtof(69 + this.key + pent[((i % 5) + 5) % 5] + 12 * Math.floor(i / 5)); }
   shoot(kind, onBeat) {
     if (kind === 'baton') { this.snz(0.12, 'bandpass', onBeat ? 1800 : 1100, 0.3); this.tone('triangle', 300, 90, 0.1, 0.2); }
@@ -347,9 +349,19 @@ export class Music {
     else if (kind === 'onde') { this.tone('sine', onBeat ? 1320 : 880, 220, 0.16, 0.16); this.tone('square', 440, 110, 0.12, 0.035); }
     else if (kind === 'puck') { this.snz(0.08, 'bandpass', 3000, 0.35); this.tone('square', 1200, 300, 0.1, 0.08); }
     else if (kind === 'pulse') { this.tone('sine', 120, 30, 0.6, 0.45); this.snz(0.5, 'lowpass', 900, 0.35); }
+    if (kind === 'pelle' || kind === 'bordee') this.tone('triangle', 480, 190, 0.045, 0.025, kind === 'bordee' ? 0.075 : 0.04);
+    if (kind === 'puck') this.tone('triangle', 140, 65, 0.09, 0.065);
+    if (kind === 'onde') this.snz(0.045, 'bandpass', 2400, 0.045, 0, 0.17);
     if (onBeat) this.tone('triangle', this.scale(10), 0, 0.14, 0.07);
   }
-  hit() { this.tone('square', 260 + Math.random() * 60, 120, 0.05, 0.045); }
+  hit(kind = 'pelle', id) {
+    // Keep one random draw per hit, even when coalesced: combat shares Math.random.
+    const variation = Math.random();
+    if (!allowImpact(this.impactGate, id, this.ctx ? this.ctx.currentTime : performance.now() / 1000)) return;
+    if (kind === 'baton') { this.tone('triangle', 180 + variation * 30, 55, 0.09, 0.13); this.snz(0.055, 'bandpass', 1600, 0.1, 0, variation * 0.5); }
+    else if (kind === 'onde') { this.tone('sine', 480 + variation * 40, 100, 0.13, 0.095); this.snz(0.07, 'bandpass', 3200, 0.055, 0, variation * 0.5); }
+    else { this.tone('square', 260 + variation * 60, 120, 0.05, 0.045); this.snz(0.04, 'highpass', 2200, 0.07, 0, variation * 0.5); }
+  }
   kill(i) { this.tone('triangle', this.scale(5 + (i % 8)), 0, 0.25, 0.13); this.tone('sine', this.scale(10 + (i % 8)), 0, 0.3, 0.06, 0.04); this.snz(0.16, 'bandpass', 2400, 0.1); }
   coin(i) { this.tone('square', this.scale(10 + (i % 10)), 0, 0.07, 0.035); }
   hurt() { this.tone('sawtooth', 180, 60, 0.25, 0.25); this.snz(0.15, 'lowpass', 600, 0.3); }

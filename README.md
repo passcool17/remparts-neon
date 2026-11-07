@@ -28,3 +28,23 @@ Paramètres d'URL : `?q=low` ou `?q=high` (qualité), `?touch` (forcer les contr
 - [Three.js](https://threejs.org) r170 (licence MIT, `vendor/THREE-LICENSE`), copié dans `vendor/`.
 - Polices Jersey 10 et Press Start 2P (SIL Open Font License, `assets/fonts/`).
 - Code, musique, textes et graphismes : originaux, générés par le code.
+
+## Ressenti des armes originales
+La présentation distingue les six gestes : balayage et lancer frappé du Bâton,
+recul et bordée de la Pelle-fusil, libération d'orbe et pulsation de l'Onde.
+Les impacts ont une signature sonore par arme, regroupée par attaque ; une
+élimination reste prioritaire dans le viseur. Les ennemis accusent visuellement
+le choc, sans étourdissement ni modification du recul physique.
+
+Cette passe ne change pas les dégâts, la cadence, la portée, les améliorations,
+les sauvegardes ou la musique. Aucun remplacement Nerf. Les secousses utilisent
+le réglage existant (zéro reste zéro) ; aucun nouvel arrêt d'image.
+
+Tests déterministes sans navigateur, avec Node 22+ et l'historique Git local :
+```
+node --test tests/*.test.mjs
+```
+Ils comparent les calculs/événements de combat à la révision de référence
+`8ce6e169fd13ae4461118bf2364c19fd64e4ae74`, et vérifient les enveloppes,
+les marqueurs et la coalescence audio. Ils ne remplacent pas l'essai visuel,
+l'écoute du mix et la mesure sur téléphone. Voir [GAME.md](GAME.md).

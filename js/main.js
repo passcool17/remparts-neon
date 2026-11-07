@@ -1,3 +1,4 @@
+import { createFeel, triggerFeel, stepFeel, sampleFeel, markerKind, flinchPose } from './weapon-feel.js';
 // Remparts Néon — jeu de survie par vagues, néon québécois satirique.
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -114,10 +115,12 @@ function loadLevel(li) {
 // ---------- Arme en main (vue à la première personne) ----------
 const vm = new THREE.Group(); camera.add(vm); vm.position.set(0.34, -0.33, -0.62); vm.scale.setScalar(0.8);
 let vmGlow = [];
+const feel = createFeel();
 const flashTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'); x.translate(32, 32);
   for (let i = 0; i < 6; i++) { x.rotate(Math.PI / 3); const g = x.createLinearGradient(0, 0, 30, 0); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.beginPath(); x.moveTo(0, -4); x.lineTo(30, 0); x.lineTo(0, 4); x.fill(); }
   const g = x.createRadialGradient(0, 0, 0, 0, 0, 16); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(-16, -16, 32, 32); return new THREE.CanvasTexture(c); })();
 function buildViewmodel() {
+  Object.assign(feel, createFeel()); G.mflashT = 0; G.swing = 0; G.recoil = 0; vm.userData = {}; vm.rotation.set(0, 0, 0);
   while (vm.children.length) { const c = vm.children.pop(); disposeTree(c); }
   vmGlow = []; const p = G.path; const g = new THREE.Group(); vm.add(g); const pulseMats = [];
   const M = (c, e = 0.3) => new THREE.MeshLambertMaterial({ color: new THREE.Color(c).multiplyScalar(0.6), emissive: new THREE.Color(c).multiplyScalar(e * 0.5) });
@@ -290,6 +293,11 @@ function updEnemy(e, dt) {
   const root = mk.root; root.position.set(e.x, 0, e.z); root.scale.setScalar(Math.max(0.01, 1 - Math.pow(1 - e.born, 3)) * (e.flash > 0 ? 1.08 : 1));
   const want = Math.atan2(faceX, faceZ); let df = want - e.face; df = Math.atan2(Math.sin(df), Math.cos(df)); e.face += df * Math.min(1, dt * (T.boss ? 3 : 8)); root.rotation.y = e.face;
   animate(e, dt, Math.hypot(vx, vz));
+  if (e.flinchAge < 0.2) {
+    e.flinchAge += dt;
+    const f = flinchPose(e.flinchAge, T.boss ? 0.08 : e.type === 'plow' ? 0.4 : 1, e.flinchSide);
+    mk.body.rotation.x += f.x; mk.body.rotation.z += f.z;
+  }
   if (e.flash > 0) { e.flash -= dt; mk.flash.forEach(m => m.emissive.setHex(0x8a8a8a)); if (e.flash <= 0) mk.flash.forEach((m, i) => m.emissive.copy(mk.base[i])); }
 }
 const T_R = e => e.T.r;
@@ -324,16 +332,23 @@ function judgeBeat() {
   if (on && near !== G.lastBeatHit) { G.lastBeatHit = near; G.streak++; G.bestStreak = Math.max(G.bestStreak, G.streak); G.beatHits++; G.beatFlash = 0.25; }
   return on;
 }
-function dmgEnemy(e, amt, on, kx = 0, kz = 0, at) {
+function dmgEnemy(e, amt, on, kx = 0, kz = 0, at, feedbackId = G.shots) {
   if (e.dead || e.untouchable) return; amt *= G.st.gdmg; const crit = Math.random() < G.st.crit; if (crit) { amt *= 2; e.dmgOn = true; } e.hp -= amt; e.flash = 0.07; const kb = e.T.boss ? 0.08 : e.type === 'plow' ? 0.4 : 1; e.kx += kx * kb; e.kz += kz * kb;
-  const c = at || eCenter(e); fx.burst(c, [e.T.colors[0], 0xffffff], on ? 10 : 5, 4, 0.22, 0.35, 6, 1); music.hit();
+  e.flinchAge = 0;
+  const localX = kx * Math.cos(e.face || 0) - kz * Math.sin(e.face || 0);
+  e.flinchSide = localX < 0 ? -1 : 1;
+  const c = at || eCenter(e); fx.burst(c, [e.T.colors[0], 0xffffff], on ? 10 : 5, 4, 0.22, 0.35, 6, 1); music.hit(G.path, feedbackId);
   e.dmgAcc = (e.dmgAcc || 0) + amt; e.dmgOn = e.dmgOn || on; if (!(e.dmgT > 0)) e.dmgT = 0.09; e.dmgAt = c;
   hitMark(on ? 'beat' : '');
   if (e.hp <= 0) { flushDmg(e); killEnemy(e, on); }
 }
 function flushDmg(e) { if (!e.dmgAcc || !save.nums) { e.dmgAcc = 0; return; } const v = Math.round(e.dmgAcc); const big = v >= 40 || e.dmgOn;
   floatText(e.dmgAt.clone().add(new V3(rnd(-0.4, 0.4), 0.3, rnd(-0.4, 0.4))), v + (e.dmgOn ? '!' : ''), e.dmgOn ? '#ff7af0' : v >= 40 ? '#ffd23a' : '#ffffff', big, 0.7, 'num'); e.dmgAcc = 0; e.dmgOn = false; }
-function hitMark(kind) { const h = $('hitmark'); h.className = 'on ' + kind; G.hitT = kind === 'kill' ? 0.22 : 0.1; }
+function hitMark(kind) {
+  const next = markerKind(G.hitKind || '', G.hitT, kind);
+  if (next !== kind) return;
+  G.hitKind = next; const h = $('hitmark'); h.className = 'on ' + next; G.hitT = next === 'kill' ? 0.22 : 0.1;
+}
 function killEnemy(e, on) {
   const T = e.T, L = LEVELS[G.li]; removeEnemy(e); const c = eCenter(e); const boss = T.boss;
   fx.burst(c, T.colors, boss ? 280 : 46, boss ? 18 : 9, boss ? 0.8 : 0.42, boss ? 1.4 : 0.9, 7, 3);
@@ -354,6 +369,7 @@ function killEnemy(e, on) {
 function attack(alt) {
   const P = G.P, st = G.st; if (!P || P.dead) return;
   const on = judgeBeat(); const mul = on ? st.beatMul : 1; const o = eyePos(), d = aimDir(); G.shots++;
+  triggerFeel(feel, G.path, alt, on);
   const muzzle = o.clone().add(d.clone().multiplyScalar(0.6)).add(new V3(Math.cos(P.yaw) * 0.25, -0.22, -Math.sin(P.yaw) * 0.25));
   if (on) { $('cross').classList.add('hit'); G.crossT = 0.15; }
   G.mflashT = G.path === 'baton' ? 0 : 0.05;
@@ -368,7 +384,7 @@ function attack(alt) {
       const arcC = on ? [0xff3fd2, 0xffffff, 0x2bf0ff] : [0xff3fd2, 0xffffff];
       for (let i = 0; i < (on ? 22 : 12); i++) { const a = P.yaw + (Math.random() - 0.5) * st.arc; const r = st.range * rnd(0.5, 1); fx.burst(new V3(P.x - Math.sin(a) * r, 1.2 + rnd(-0.3, 0.3), P.z - Math.cos(a) * r), arcC, 1, 1.5, 0.22, 0.25, 0, 0); }
       if (n) G.shake = Math.min(1, G.shake + 0.12);
-    } else { music.shoot('puck', on); addProj('puck', muzzle, d.clone().multiplyScalar(42), { owner: 'p', dmg: st.altDmg * mul, pierce: st.pierce, life: 1.6, r: 0.4, on, trail: on ? 0xff3fd2 : 0x2bf0ff }); }
+    } else { music.shoot('puck', on); addProj('puck', muzzle, d.clone().multiplyScalar(42), { owner: 'p', feedbackId: G.shots, dmg: st.altDmg * mul, pierce: st.pierce, life: 1.6, r: 0.4, on, trail: on ? 0xff3fd2 : 0x2bf0ff }); }
   } else if (G.path === 'pelle') {
     const shotsN = alt ? st.pellets : 1, spread = alt ? 0.085 : st.spread; music.shoot(alt ? 'bordee' : 'pelle', on);
     for (let k = 0; k < shotsN; k++) { const dd = d.clone(); dd.x += (Math.random() - 0.5) * spread * 2; dd.y += (Math.random() - 0.5) * spread * 2; dd.z += (Math.random() - 0.5) * spread * 2; dd.normalize();
@@ -377,7 +393,7 @@ function attack(alt) {
       fx.tracer(muzzle, o.clone().add(dd.multiplyScalar(endT)), on ? 0xff3fd2 : 0xffd27a); }
     G.recoil = alt ? 1 : 0.35; if (alt) G.shake = Math.min(1, G.shake + 0.2);
   } else {
-    if (!alt) { music.shoot('onde', on); addProj('orb', muzzle, d.clone().multiplyScalar(30), { owner: 'p', dmg: st.dmg * mul, life: 1.8, r: 0.35, boom: st.radius * (on ? 1.35 : 1), on, mat: on ? 'orbB' : 'orb', trail: on ? 0xff3fd2 : 0x2bf0ff }); G.recoil = 0.5; }
+    if (!alt) { music.shoot('onde', on); addProj('orb', muzzle, d.clone().multiplyScalar(30), { owner: 'p', feedbackId: G.shots, dmg: st.dmg * mul, life: 1.8, r: 0.35, boom: st.radius * (on ? 1.35 : 1), on, mat: on ? 'orbB' : 'orb', trail: on ? 0xff3fd2 : 0x2bf0ff }); G.recoil = 0.5; }
     else { music.shoot('pulse', on); const R = st.pulseR; fx.ring(new V3(P.x, 0, P.z), 0x2bf0ff, 0.5, R, 0.4); fx.ring(new V3(P.x, 0.8, P.z), on ? 0xff3fd2 : 0xffffff, 0.5, R * 0.9, 0.35);
       fx.burst(new V3(P.x, 1, P.z), [0x2bf0ff, 0xffffff, 0xff3fd2], 60, 14, 0.3, 0.5, 0, 0);
       for (const e of G.enemies.slice()) { const ex = e.x - P.x, ez = e.z - P.z, dd = Math.hypot(ex, ez); if (dd < R + e.T.r) dmgEnemy(e, st.altDmg * mul * (1 - 0.4 * dd / R), on, ex / (dd || 1) * 16, ez / (dd || 1) * 16); }
@@ -388,11 +404,11 @@ function attack(alt) {
 function explode(p) {
   const R = p.boom; fx.burst(p.pos, p.on ? [0xff3fd2, 0xffffff, 0x2bf0ff] : [0x2bf0ff, 0xffffff, 0x4f6bff], 34, 9, 0.35, 0.5, 2, 1); fx.ring(new V3(p.pos.x, Math.max(0, p.pos.y - 1), p.pos.z), p.on ? 0xff3fd2 : 0x2bf0ff, 0.3, R, 0.3);
   const hitList = [];
-  for (const e of G.enemies.slice()) { const c = eCenter(e); const dd = c.distanceTo(p.pos); if (dd < R + e.T.r) { hitList.push(e); dmgEnemy(e, p.dmg * (1 - 0.35 * dd / R), p.on, (c.x - p.pos.x) * 2, (c.z - p.pos.z) * 2); } }
+  for (const e of G.enemies.slice()) { const c = eCenter(e); const dd = c.distanceTo(p.pos); if (dd < R + e.T.r) { hitList.push(e); dmgEnemy(e, p.dmg * (1 - 0.35 * dd / R), p.on, (c.x - p.pos.x) * 2, (c.z - p.pos.z) * 2, undefined, p.feedbackId); } }
   // arc électrique vers d'autres ennemis
   let chains = G.st.chain || 0; let from = p.pos.clone();
   while (chains-- > 0) { let best = null, bd = 8; for (const e of G.enemies) { if (e.dead || hitList.includes(e)) continue; const dd = eCenter(e).distanceTo(from); if (dd < bd) { bd = dd; best = e; } }
-    if (!best) break; const c = eCenter(best); fx.tracer(from, c, 0x8dff3a); fx.tracer(from.clone().add(new V3(0, 0.2, 0)), c, 0xffffff); hitList.push(best); dmgEnemy(best, p.dmg * 0.6, p.on); from = c; }
+    if (!best) break; const c = eCenter(best); fx.tracer(from, c, 0x8dff3a); fx.tracer(from.clone().add(new V3(0, 0.2, 0)), c, 0xffffff); hitList.push(best); dmgEnemy(best, p.dmg * 0.6, p.on, 0, 0, undefined, p.feedbackId); from = c; }
   music.tone('sine', 220, 60, 0.2, 0.15);
 }
 function perfectDodge() { const P = G.P; P.perfect = true; P.inv = 0.7; G.slowmo = 0.45; P.dashN = Math.min(G.st.dashMax, P.dashN + 1); G.streak += 2; G.bestStreak = Math.max(G.bestStreak, G.streak); G.dodges = (G.dodges || 0) + 1;
@@ -426,7 +442,7 @@ function updRadio(dt) { const R = G.radio; if (!R) return; if (R.shown < R.text.
 const screens = ['title', 'paths', 'help', 'opts', 'shop', 'pause', 'over', 'win', 'lvlcard', 'records'];
 function show(id) { screens.forEach(s => $(s).classList.toggle('hidden', s !== id && !(id === 'shop' && s === 'none'))); G.screen = id; document.body.classList.toggle('shopping', id === 'shop'); focusFirst(); }
 function setHud(on) { $('hud').classList.toggle('hidden', !on); $('touch').classList.toggle('hidden', !(on && isTouch)); }
-function newPlayer() { const L = LEVELS[G.li]; const b = L.arena; const z = b.type === 'circle' ? 13 : b.h / 2 - 8;
+function newPlayer() { Object.assign(feel, createFeel()); music.impactGate = {}; G.mflashT = 0; G.swing = 0; G.recoil = 0; G.hitT = 0; G.hitKind = ''; $('hitmark').className = ''; const L = LEVELS[G.li]; const b = L.arena; const z = b.type === 'circle' ? 13 : b.h / 2 - 8;
   G.P = { x: 0, z, yaw: 0, pitch: 0, vx: 0, vz: 0, kx: 0, kz: 0, hp: G.st.hpMax, hpMax: G.st.hpMax, inv: 0, dashT: 0, dashN: G.st.dashMax, dashRe: 0, fireCd: 0, altCd: 0, bob: 0, dx: 0, dz: 0 }; }
 function startRun(path, li = 0, opt = {}) {
   G.mode = opt.mode || save.mode || 'histoire'; G.diff = opt.diff ?? save.diff ?? 1; if (G.mode === 'survie') li = 0; G.dodges = 0;
@@ -674,7 +690,7 @@ function updProjs(dt) {
     if (p.owner === 'p') {
       let done = false;
       for (const e of G.enemies) { if (e.dead || e.untouchable || p.hit.has(e)) continue; const c = eCenter(e); if (c.distanceTo(p.pos) < Math.max(e.T.r, e.T.h * 0.45) + p.r) {
-        if (p.boom) { explode(p); done = true; break; } p.hit.add(e); dmgEnemy(e, p.dmg, p.on, p.vel.x * 0.3, p.vel.z * 0.3); if (--p.pierce <= 0 || p.pierce === undefined || isNaN(p.pierce)) { done = true; break; } } }
+        if (p.boom) { explode(p); done = true; break; } p.hit.add(e); dmgEnemy(e, p.dmg, p.on, p.vel.x * 0.3, p.vel.z * 0.3, undefined, p.feedbackId); if (--p.pierce <= 0 || p.pierce === undefined || isNaN(p.pierce)) { done = true; break; } } }
       if (!done && p.boom && (p.pos.y < 0.15 || p.life <= 0)) { explode(p); done = true; }
       if (done || p.life <= 0 || p.pos.y < 0) freeProj(p);
     } else {
@@ -727,7 +743,7 @@ function frame() {
   if (G.toastT > 0) { G.toastT -= rdt; if (G.toastT <= 0) $('toast').classList.remove('on'); }
   if (G.crossT > 0) { G.crossT -= rdt; if (G.crossT <= 0) $('cross').classList.remove('hit'); }
   if (G.judgeT > 0) { G.judgeT -= rdt; if (G.judgeT <= 0) $('judge').className = ''; }
-  if (G.hitT > 0) { G.hitT -= rdt; if (G.hitT <= 0) $('hitmark').className = ''; }
+  if (G.hitT > 0) { G.hitT -= rdt; if (G.hitT <= 0) { $('hitmark').className = ''; G.hitKind = ''; } }
   G.beatFlash = (G.beatFlash || 0) - rdt; G.hurtT = Math.max(0, (G.hurtT || 0) - rdt * 1.5);
   updRadio(rdt);
   if (window.__bot && G.P) window.__bot(API, dt);
@@ -740,12 +756,13 @@ function frame() {
     camera.position.set(P.x + rnd(-sh, sh), 1.62 + Math.sin(P.bob * 1.6) * 0.04 + rnd(-sh, sh), P.z + rnd(-sh, sh)); camera.rotation.set(P.pitch, P.yaw, 0);
     G.fovKick = Math.max(0, (G.fovKick || 0) - dt * 4); const fov = 75 + G.fovKick * 9; if (Math.abs(camera.fov - fov) > 0.05) { camera.fov = fov; camera.updateProjectionMatrix(); }
     // arme en main
+    stepFeel(feel, dt); const pose = sampleFeel(feel);
     const g = vm.userData.g; G.swing = Math.max(0, (G.swing || 0) - dt * 5); G.recoil = Math.max(0, (G.recoil || 0) - dt * 8);
-    if (g) { const sw = G.swing; vm.position.set(0.34 + Math.sin(P.bob * 0.8) * 0.015, -0.33 + Math.abs(Math.cos(P.bob * 0.8)) * 0.015 - G.recoil * 0.02, -0.62 + G.recoil * 0.06);
-      if (G.path === 'baton') { vm.rotation.set(-sw * 0.6, sw > 0 ? (sw - 0.5) * 2.4 : 0, sw * 0.8); } else vm.rotation.set(G.recoil * 0.15, 0, 0);
-      const ud = vm.userData; if (ud.orb) { ud.orb.rotation.y += dt * 2; ud.orb.scale.setScalar(1 + G.pulse * 0.15 + G.recoil * 0.2); ud.orb.children.forEach(c => { if (c.userData.moon !== undefined) { const a = G.t * 4 + c.userData.moon * 2.1; c.position.set(Math.cos(a) * 0.12, Math.sin(a * 1.3) * 0.05, Math.sin(a) * 0.12); } }); }
+    if (g) { vm.position.set(0.34 + Math.sin(P.bob * 0.8) * 0.015 + pose.x, -0.33 + Math.abs(Math.cos(P.bob * 0.8)) * 0.015 + pose.y, -0.62 + pose.z);
+      vm.rotation.set(pose.rx, pose.ry, pose.rz);
+      const ud = vm.userData; if (ud.orb) { ud.orb.rotation.y += dt * 2; ud.orb.scale.setScalar(1 + G.pulse * 0.15 + pose.energy * 0.45); ud.orb.children.forEach(c => { if (c.userData.moon !== undefined) { const a = G.t * 4 + c.userData.moon * 2.1; c.position.set(Math.cos(a) * 0.12, Math.sin(a * 1.3) * 0.05, Math.sin(a) * 0.12); } }); }
       if (ud.mflash) { G.mflashT = (G.mflashT || 0) - dt; ud.mflash.visible = G.mflashT > 0; if (ud.mflash.visible) { ud.mflash.material.rotation = Math.random() * 6; ud.mflash.scale.setScalar(0.16 + Math.random() * 0.14); } }
-      if (ud.trail) ud.trail.material.opacity = Math.max(0, sw - 0.2) * 1.2;
+      if (ud.trail) ud.trail.material.opacity = pose.trail * 0.8;
       if (ud.pulseMats) ud.pulseMats.forEach(m => m.color.copy(m.userData.base).multiplyScalar(0.55 + G.pulse * 0.6 + (G.beatFlash > 0 ? 0.5 : 0))); }
     vmGlow.forEach(r => { if (r.userData.spin) { r.rotation.x += dt * r.userData.spin; r.rotation.y += dt * r.userData.spin * 0.7; } });
     updHud(bp, sec);
